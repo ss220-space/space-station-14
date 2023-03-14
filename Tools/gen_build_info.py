@@ -21,9 +21,9 @@ SERVER_FILES = [
 
 VERSION = os.environ['GITHUB_SHA']
 FORK_ID = "ss220"
-BUILD_URL = f"https://files.ss220.space/ss14/{{FORK_ID}}/builds/{{FORK_VERSION}}/{FILE}"
-MANIFEST_URL = f"https://files.ss220.space/ss14/{{FORK_ID}}/version/{{FORK_VERSION}}/manifest"
-MANIFEST_DOWNLOAD_URL = f"https://files.ss220.space/ss14/{{FORK_ID}}/version/{{FORK_VERSION}}/download"
+BUILD_URL = f"https://files.ss220.space/ss14/{FORK_ID}/builds/{VERSION}/{FILE}"
+MANIFEST_URL = f"https://files.ss220.space/ss14/{FORK_ID}/version/{VERSION}/manifest"
+MANIFEST_DOWNLOAD_URL = f"https://files.ss220.space/ss14/{FORK_ID}/version/{VERSION}/download"
 
 def main() -> None:
     client_file = os.path.join("release", FILE)
