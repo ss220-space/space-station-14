@@ -3,7 +3,7 @@ name: Check Merge Conflicts
 on:
   push:
     branches:
-      - master
+      - master220
   pull_request_target:
 
 jobs:
