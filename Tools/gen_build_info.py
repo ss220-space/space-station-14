@@ -20,7 +20,7 @@ SERVER_FILES = [
 ]
 
 VERSION = os.environ['GITHUB_SHA']
-FORK_ID = "syndicate"
+FORK_ID = "ss220"
 BUILD_URL = f"https://builds.station14.ru/{{FORK_ID}}/builds/{{FORK_VERSION}}/{FILE}"
 MANIFEST_URL = f"https://cdn.station14.ru/{{FORK_ID}}/version/{{FORK_VERSION}}/manifest"
 MANIFEST_DOWNLOAD_URL = f"https://cdn.station14.ru/{{FORK_ID}}/version/{{FORK_VERSION}}/download"
