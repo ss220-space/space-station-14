@@ -170,20 +170,20 @@ def build_platform(platform: PlatformReg, skip_build: bool, hybrid_acz: bool) ->
             "/m"
         ], check=True)
         # Corvax-Secrets-Start
-        if os.path.exists(p("Secrets", "Content.CorvaxServer")):
-            print(Fore.GREEN + f"Secrets found. Building secret project for {platform.rid}..." + Style.RESET_ALL)
-            subprocess.run([
-                "dotnet",
-                "build",
-                p("Secrets","Content.CorvaxServer", "Content.CorvaxServer.csproj"),
-                "-c", "Release",
-                "--nologo",
-                "/v:m",
-                f"/p:TargetOS={platform.target_os}",
-                "/t:Rebuild",
-                "/p:FullRelease=True",
-                "/m"
-            ], check=True)
+        # if os.path.exists(p("Secrets", "Content.CorvaxServer")):
+        #     print(Fore.GREEN + f"Secrets found. Building secret project for {platform.rid}..." + Style.RESET_ALL)
+        #     subprocess.run([
+        #         "dotnet",
+        #         "build",
+        #         p("Secrets","Content.CorvaxServer", "Content.CorvaxServer.csproj"),
+        #         "-c", "Release",
+        #         "--nologo",
+        #         "/v:m",
+        #         f"/p:TargetOS={platform.target_os}",
+        #         "/t:Rebuild",
+        #         "/p:FullRelease=True",
+        #         "/m"
+        #     ], check=True)
         # Corvax-Secrets-End
 
         publish_client_server(platform.rid, platform.target_os)
