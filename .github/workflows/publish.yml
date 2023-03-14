@@ -65,14 +65,14 @@ jobs:
         remote_key: ${{ secrets.BUILDS_SSH_KEY }}
         remote_key_pass: ${{ secrets.BUILDS_SSH_KEY_PASS }}
 
-    # - name: Update manifest JSON
-    #   uses: appleboy/ssh-action@master
-    #   with:
-    #     host: ${{ secrets.BUILDS_HOST }}
-    #     username: ${{ secrets.BUILDS_USERNAME }}
-    #     key: ${{ secrets.BUILDS_SSH_KEY }}
-    #     passphrase: ${{ secrets.BUILDS_SSH_KEY_PASS }}
-    #     script: node ~/scripts/push_to_manifest.js -fork ss220 -id ${{ github.sha }}
+    - name: Update manifest JSON
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.BUILDS_HOST }}
+        username: ${{ secrets.BUILDS_USERNAME }}
+        key: ${{ secrets.BUILDS_SSH_KEY }}
+        passphrase: ${{ secrets.BUILDS_SSH_KEY_PASS }}
+        script: node ~/scripts/push_to_manifest.js --fork ss220 --id ${{ github.sha }}
 
     # - name: Publish changelog
     #   run: Tools/actions_changelogs_since_last_run.py
