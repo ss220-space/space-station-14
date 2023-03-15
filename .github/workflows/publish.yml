@@ -72,7 +72,10 @@ jobs:
         username: ${{ secrets.BUILDS_USERNAME }}
         key: ${{ secrets.BUILDS_SSH_KEY }}
         passphrase: ${{ secrets.BUILDS_SSH_KEY_PASS }}
-        script: . ~/.nvm/nvm.sh && node ~/scripts/push_to_manifest.js --fork ss220 --id ${{ github.sha }}
+        script: >
+          . ~/.nvm/nvm.sh
+          && node ~/scripts/push_to_manifest.js --fork ss220 --id ${{ github.sha }}
+          && ~/scripts/notify_update.sh ${{ secrets.ROBUSTCDN_TOKEN }} ${{ secrets.WATCHDOG_TOKEN }}
 
     # - name: Publish changelog
     #   run: Tools/actions_changelogs_since_last_run.py
