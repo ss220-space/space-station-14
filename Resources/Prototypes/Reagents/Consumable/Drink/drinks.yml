@@ -291,6 +291,22 @@
         factor: 4
 
 - type: reagent
+  id: HolyWater
+  name: reagent-name-holywater
+  parent: BaseDrink
+  desc: reagent-desc-holywater
+  physicalDesc: reagent-physical-desc-sour
+  flavor: water
+  color: "#75b1f0"
+  boilingPoint: 100.0
+  meltingPoint: 0.0
+  metabolisms:
+    Drink:
+      effects:
+      - !type:SatiateThirst
+        factor: 3
+
+- type: reagent
   id: Ice
   name: reagent-name-ice
   desc: reagent-desc-ice
