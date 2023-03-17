@@ -1,5 +1,9 @@
 reagent-name-aluminium = алюминий
 reagent-desc-aluminium = Серебристый, мягкий, немагнитный и ковкий металл.
+reagent-name-bromine = бром
+reagent-desc-bromine = Тяжёлая едкая жидкость красно-бурого цвета с сильным неприятным "тяжёлым" запахом
+reagent-name-chromium = хром
+reagent-desc-chromium = Это твёрдый переходный металл голубовато-белого цвета
 reagent-name-ash = пепел
 reagent-desc-ash = Светло-серый рассыпчатый порошок.
 reagent-name-carbon = углерод
