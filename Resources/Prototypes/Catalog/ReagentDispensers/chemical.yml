@@ -21,6 +21,8 @@
   - Silicon
   - Sodium
   - Sulfur
+  - Bromine
+  - Chromium
 
 - type: reagentDispenserInventory
   id: ChemDispenserEmaggedInventory

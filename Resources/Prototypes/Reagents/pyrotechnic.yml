@@ -19,7 +19,7 @@
   parent: BasePyrotechnic
   desc: reagent-desc-thermite
   physicalDesc: reagent-physical-desc-grainy
-  flavor: bitter
+  flavor: 
   color: "#757245"
   boilingPoint: 2977.0 # Aluminum oxide
   meltingPoint: 2030.0

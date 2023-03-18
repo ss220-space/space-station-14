@@ -10,6 +10,28 @@
   meltingPoint: 660.0
 
 - type: reagent
+  id: Bromine # We use real words here.
+  name: reagent-name-bromine # -we use real words here.
+  group: Elements
+  desc: reagent-desc-bromine # -we use real words here.
+  physicalDesc: reagent-physical-desc-gaseous
+  flavor: bitter
+  color: "#cf3e1e"
+  boilingPoint: 52.9
+  meltingPoint: -7.2
+
+- type: reagent
+  id: Chromium # We use real words here.
+  name: reagent-name-chromium # -we use real words here.
+  group: Elements
+  desc: reagent-desc-chromium # -we use real words here.
+  physicalDesc: reagent-physical-desc-metallic
+  flavor: bitter
+  color: "#C6E2FF"
+  boilingPoint: 2671.9
+  meltingPoint: 1856.9
+
+- type: reagent
   id: Carbon
   name: reagent-name-carbon
   group: Elements
@@ -39,7 +61,13 @@
       amount: -3
     - !type:PlantAdjustHealth
       amount: -1
-
+  metabolisms:
+    Poison:
+      effects:
+      - !type:HealthChange
+        damage:
+          groups:
+            Caustic: 1
 - type: reagent
   id: Copper
   name: reagent-name-copper
