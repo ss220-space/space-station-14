@@ -20,6 +20,7 @@ using Content.Client.Preferences;
 using Content.Client.Radiation.Overlays;
 using Content.Client.Screenshot;
 using Content.Client.Singularity;
+using Content.Client.SS220.Authorization;
 using Content.Client.Stylesheets;
 using Content.Client.Viewport;
 using Content.Client.Voting;
@@ -73,6 +74,7 @@ namespace Content.Client.Entry
         [Dependency] private readonly SponsorsManager _sponsorsManager = default!; // Corvax-Sponsors
         [Dependency] private readonly JoinQueueManager _queueManager = default!; // Corvax-Queue
         [Dependency] private readonly TTSManager _ttsManager = default!; // Corvax-TTS
+        [Dependency] private readonly AuthorizationManager _authManager = default!;
 
         public override void Init()
         {
@@ -140,6 +142,7 @@ namespace Content.Client.Entry
             _ghostKick.Initialize();
             _extendedDisconnectInformation.Initialize();
             _playTimeTracking.Initialize();
+            _authManager.Initialize();
 
             //AUTOSCALING default Setup!
             _configManager.SetCVar("interface.resolutionAutoScaleUpperCutoffX", 1080);

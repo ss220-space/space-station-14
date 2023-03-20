@@ -1,0 +1,24 @@
+﻿<Control xmlns="https://spacestation14.io"
+         xmlns:parallax="clr-namespace:Content.Client.Parallax"
+         VerticalExpand="True" HorizontalExpand="True"
+         MouseFilter="Stop">
+    <parallax:ParallaxControl />
+    <Control MaxWidth="650" MaxHeight="200">
+        <PanelContainer StyleClasses="windowPanel" />
+        <ScrollContainer HScrollEnabled="False">
+            <BoxContainer Orientation="Vertical" SeparationOverride="10" Align="Center">
+                <Label Name="Desc"
+                       Text="{Loc 'authorization-discord-not-linked'}"
+                       Align="Center" />
+                <Label Name="URL"
+                       Align="Center" />
+                <BoxContainer Orientation="Horizontal" Align="Center">
+                    <Button Name="AcceptButton"
+                            Text="{Loc 'ui-auth-open-browser'}" />
+                    <Button Name="QuitButton"
+                            Text="{Loc 'ui-auth-exit'}" />
+                </BoxContainer>
+            </BoxContainer>
+        </ScrollContainer>
+    </Control>
+</Control>

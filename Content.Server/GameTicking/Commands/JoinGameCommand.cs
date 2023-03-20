@@ -1,3 +1,4 @@
+using Content.Server.SS220.Authorization;
 using Content.Server.Station.Systems;
 using Content.Shared.Administration;
 using Content.Shared.GameTicking;
@@ -12,6 +13,7 @@ namespace Content.Server.GameTicking.Commands
     sealed class JoinGameCommand : IConsoleCommand
     {
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+        [Dependency] private readonly IAuthorizationManager _authManager = default!;
 
         public string Command => "joingame";
         public string Description => "";
@@ -21,7 +23,7 @@ namespace Content.Server.GameTicking.Commands
         {
             IoCManager.InjectDependencies(this);
         }
-        public void Execute(IConsoleShell shell, string argStr, string[] args)
+        public async void Execute(IConsoleShell shell, string argStr, string[] args)
         {
             if (args.Length != 2)
             {
@@ -44,6 +46,13 @@ namespace Content.Server.GameTicking.Commands
             {
                 Logger.InfoS("security", $"{player.Name} ({player.UserId}) attempted to latejoin while in-game.");
                 shell.WriteError($"{player.Name} is not in the lobby.   This incident will be reported.");
+                return;
+            }
+
+
+            var authValid = await _authManager.CheckAuth(player);
+            if (!authValid)
+            {
                 return;
             }
 
