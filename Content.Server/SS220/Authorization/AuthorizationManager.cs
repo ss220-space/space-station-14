@@ -38,7 +38,7 @@ public sealed class DiscordAuthorizationManager : IAuthorizationManager
         var discordAuthorization = await GetDiscordAuthorization(player.Data.UserId);
         if (discordAuthorization == null)
         {
-            var response = await _httpClient.GetAsync($"{_apiUrl}/{player.Data.UserId.ToString()}");
+            var response = await _httpClient.PostAsync($"{_apiUrl}/{player.Data.UserId.ToString()}", null);
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 var errorText = await response.Content.ReadAsStringAsync();
