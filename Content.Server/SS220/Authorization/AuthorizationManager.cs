@@ -74,7 +74,7 @@ public sealed class DiscordAuthorizationManager : IAuthorizationManager
 
         var url = $"{_apiUrl}/{userId.ToString()}";
         var response = await _httpClient.GetAsync(url);
-        if (response.StatusCode != HttpStatusCode.NotFound)
+        if (response.StatusCode == HttpStatusCode.NotFound)
             return null;
 
         if (response.StatusCode != HttpStatusCode.OK)
