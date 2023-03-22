@@ -8,9 +8,9 @@ namespace Content.Shared.SS220.Authorization;
 [Serializable]
 public sealed class DiscordAuthorization
 {
-    [JsonPropertyName("discordId")] public string DiscordId { get; set; } = string.Empty;
+    [JsonPropertyName("discordId")] public string? DiscordId { get; set; } = null;
 
-    [JsonPropertyName("discordName")] public string DiscordName { get; set; } = string.Empty;
+    [JsonPropertyName("discordName")] public string? DiscordName { get; set; } = null;
 }
 
 [Serializable]
