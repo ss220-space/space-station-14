@@ -1,6 +1,8 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Content.Shared.Corvax.CCCVars;
 using Content.Shared.SS220.Authorization;
@@ -38,7 +40,14 @@ public sealed class DiscordAuthorizationManager : IAuthorizationManager
         var discordAuthorization = await GetDiscordAuthorization(player.Data.UserId);
         if (discordAuthorization == null || discordAuthorization.DiscordId == null)
         {
-            var response = await _httpClient.PostAsync($"{_apiUrl}/{player.Data.UserId.ToString()}", null);
+            var payload = new PlayerData() {
+                UserId = player.Data.UserId,
+                UserName = player.Data.UserName
+            };
+
+            var response = await _httpClient.PostAsync($"{_apiUrl}/{player.Data.UserId.ToString()}",
+                new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"));
+
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 var errorText = await response.Content.ReadAsStringAsync();

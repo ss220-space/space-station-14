@@ -14,6 +14,14 @@ public sealed class DiscordAuthorization
 }
 
 [Serializable]
+public sealed class PlayerData
+{
+    [JsonPropertyName("userId")] public NetUserId UserId { get; set; }
+
+    [JsonPropertyName("userName")] public string? UserName { get; set; }
+}
+
+[Serializable]
 public sealed class AuthorizationLink
 {
     [JsonPropertyName("authURL")] public string AuthURL { get; set; } = string.Empty;
