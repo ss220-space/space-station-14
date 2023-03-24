@@ -21,6 +21,7 @@ using Content.Server.Players.PlayTimeTracking;
 using Content.Server.Preferences.Managers;
 using Content.Server.ServerInfo;
 using Content.Server.ServerUpdates;
+using Content.Server.SS220.Authorization;
 using Content.Server.Voting.Managers;
 using Content.Shared.Administration;
 using Content.Shared.CCVar;
@@ -113,6 +114,7 @@ namespace Content.Server.Entry
                 IoCManager.Resolve<JoinQueueManager>().Initialize(); // Corvax-Queue
                 IoCManager.Resolve<TTSManager>().Initialize(); // Corvax-TTS
                 IoCManager.Resolve<ServerInfoManager>().Initialize();
+                IoCManager.Resolve<IAuthorizationManager>().Initialize();
 
                 _voteManager.Initialize();
                 _updateManager.Initialize();

@@ -21,6 +21,7 @@ using Content.Server.Players.PlayTimeTracking;
 using Content.Server.Preferences.Managers;
 using Content.Server.ServerInfo;
 using Content.Server.ServerUpdates;
+using Content.Server.SS220.Authorization;
 using Content.Server.Voting.Managers;
 using Content.Shared.Administration;
 using Content.Shared.Administration.Logs;
@@ -65,6 +66,8 @@ namespace Content.Server.IoC
             IoCManager.Register<JoinQueueManager>(); // Corvax-Queue
             IoCManager.Register<TTSManager>(); // Corvax-TTS
             IoCManager.Register<ServerInfoManager>();
+
+            IoCManager.Register<IAuthorizationManager, DiscordAuthorizationManager>();
         }
     }
 }

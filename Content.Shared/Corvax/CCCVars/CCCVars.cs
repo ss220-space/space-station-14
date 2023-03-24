@@ -88,10 +88,25 @@ public sealed class CCCVars
     /*
      * Peaceful Round End
      */
-    
+
     /// <summary>
     /// Making everyone a pacifist at the end of a round.
     /// </summary>
     public static readonly CVarDef<bool> PeacefulRoundEnd =
         CVarDef.Create("game.peaceful_end", true, CVar.SERVERONLY);
+
+    /*
+     * Authorization
+     */
+    /// <summary>
+    /// Is Authorization enabled.
+    /// </summary>
+    public static readonly CVarDef<bool> AuthorizationEnabled =
+        CVarDef.Create("authorization.enabled", false, CVar.SERVERONLY);
+
+    /// <summary>
+    /// URL of the authorization server.
+    /// </summary>
+    public static readonly CVarDef<string> AuthorizationApiUrl =
+        CVarDef.Create("authorization.api_url", "", CVar.SERVERONLY);
 }

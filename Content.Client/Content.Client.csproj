@@ -33,6 +33,9 @@
     <Compile Update="UserInterface\Systems\Inventory\Windows\StrippingWindow.xaml.cs">
       <DependentUpon>StrippingWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Update="SS220\Authorization\AuthPopup.xaml.cs">
+      <DependentUpon>AuthPopup.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <Import Project="..\RobustToolbox\MSBuild\Robust.Properties.targets" />
