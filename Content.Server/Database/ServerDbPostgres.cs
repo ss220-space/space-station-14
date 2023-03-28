@@ -448,7 +448,7 @@ namespace Content.Server.Database
         }
 
         public override async Task<((Admin, string? lastUserName)[] admins, AdminRank[])>
-            GetAllAdminAndRanksAsync(CancellationToken cancel)
+            GetAllAdminAndRanksAsync(string serverName, CancellationToken cancel)
         {
             await using var db = await GetDbImpl();
 
@@ -459,6 +459,7 @@ namespace Content.Server.Database
             // Join with the player table to find their last seen username, if they have one.
             var admins = await db.PgDbContext.Admin
                 .Include(a => a.Flags)
+                .Where(a => a.Server != null && a.Server.Name == serverName)
                 .GroupJoin(db.PgDbContext.Player, a => a.UserId, p => p.UserId, (a, grouping) => new {a, grouping})
                 .SelectMany(t => t.grouping.DefaultIfEmpty(), (t, p) => new {t.a, p!.LastSeenUserName})
                 .ToArrayAsync(cancel);

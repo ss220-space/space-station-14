@@ -319,6 +319,7 @@ namespace Content.Server.Database
     public class Admin
     {
         [Key] public Guid UserId { get; set; }
+        [Key] public Server? Server { get; set; }
         public string? Title { get; set; }
 
         public int? AdminRankId { get; set; }

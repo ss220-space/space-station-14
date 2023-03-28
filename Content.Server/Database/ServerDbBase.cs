@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Content.Server.Administration.Logs;
 using Content.Shared.Administration.Logs;
+using Content.Shared.CCVar;
 using Content.Shared.Humanoid;
 using Content.Shared.Humanoid.Markings;
 using Content.Shared.Preferences;
@@ -174,7 +175,7 @@ namespace Content.Server.Database
             var gender = sex == Sex.Male ? Gender.Male : Gender.Female;
             if (Enum.TryParse<Gender>(profile.Gender, true, out var genderVal))
                 gender = genderVal;
-            
+
             // Corvax-TTS-Start
             var voice = profile.Voice;
             if (voice == String.Empty)
@@ -515,7 +516,7 @@ namespace Content.Server.Database
         /*
          * ADMIN RANKS
          */
-        public async Task<Admin?> GetAdminDataForAsync(NetUserId userId, CancellationToken cancel)
+        public async Task<Admin?> GetAdminDataForAsync(NetUserId userId, string serverName, CancellationToken cancel)
         {
             await using var db = await GetDb();
 
@@ -524,11 +525,11 @@ namespace Content.Server.Database
                 .Include(p => p.AdminRank)
                 .ThenInclude(p => p!.Flags)
                 .AsSplitQuery() // tests fail because of a random warning if you dont have this!
-                .SingleOrDefaultAsync(p => p.UserId == userId.UserId, cancel);
+                .SingleOrDefaultAsync(p => p.UserId == userId.UserId && p.Server != null && p.Server.Name == serverName, cancel);
         }
 
         public abstract Task<((Admin, string? lastUserName)[] admins, AdminRank[])>
-            GetAllAdminAndRanksAsync(CancellationToken cancel);
+            GetAllAdminAndRanksAsync(string serverName, CancellationToken cancel);
 
         public async Task<AdminRank?> GetAdminRankDataForAsync(int id, CancellationToken cancel = default)
         {
@@ -539,11 +540,12 @@ namespace Content.Server.Database
                 .SingleOrDefaultAsync(r => r.Id == id, cancel);
         }
 
-        public async Task RemoveAdminAsync(NetUserId userId, CancellationToken cancel)
+        public async Task RemoveAdminAsync(NetUserId userId, string serverName, CancellationToken cancel)
         {
             await using var db = await GetDb();
 
-            var admin = await db.DbContext.Admin.SingleAsync(a => a.UserId == userId.UserId, cancel);
+            var admin = await db.DbContext.Admin
+                .SingleAsync(a => a.UserId == userId.UserId && a.Server != null && a.Server.Name == serverName, cancel);
             db.DbContext.Admin.Remove(admin);
 
             await db.DbContext.SaveChangesAsync(cancel);

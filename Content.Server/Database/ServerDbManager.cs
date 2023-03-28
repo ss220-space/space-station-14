@@ -441,7 +441,7 @@ namespace Content.Server.Database
         public Task<Admin?> GetAdminDataForAsync(NetUserId userId, CancellationToken cancel = default)
         {
             DbReadOpsMetric.Inc();
-            return _db.GetAdminDataForAsync(userId, cancel);
+            return _db.GetAdminDataForAsync(userId, _cfg.GetCVar(CCVars.AdminLogsServerName), cancel);
         }
 
         public Task<AdminRank?> GetAdminRankAsync(int id, CancellationToken cancel = default)
@@ -454,13 +454,13 @@ namespace Content.Server.Database
             CancellationToken cancel = default)
         {
             DbReadOpsMetric.Inc();
-            return _db.GetAllAdminAndRanksAsync(cancel);
+            return _db.GetAllAdminAndRanksAsync(_cfg.GetCVar(CCVars.AdminLogsServerName), cancel);
         }
 
         public Task RemoveAdminAsync(NetUserId userId, CancellationToken cancel = default)
         {
             DbWriteOpsMetric.Inc();
-            return _db.RemoveAdminAsync(userId, cancel);
+            return _db.RemoveAdminAsync(userId, _cfg.GetCVar(CCVars.AdminLogsServerName), cancel);
         }
 
         public Task AddAdminAsync(Admin admin, CancellationToken cancel = default)
