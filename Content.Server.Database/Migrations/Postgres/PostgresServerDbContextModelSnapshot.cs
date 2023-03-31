@@ -35,6 +35,10 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("integer")
                         .HasColumnName("admin_rank_id");
 
+                    b.Property<int?>("ServerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("server_id");
+
                     b.Property<string>("Title")
                         .HasColumnType("text")
                         .HasColumnName("title");
@@ -44,6 +48,9 @@ namespace Content.Server.Database.Migrations.Postgres
 
                     b.HasIndex("AdminRankId")
                         .HasDatabaseName("IX_admin_admin_rank_id");
+
+                    b.HasIndex("ServerId")
+                        .HasDatabaseName("IX_admin__server_id");
 
                     b.ToTable("admin", (string)null);
                 });
@@ -662,12 +669,10 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasColumnType("text")
                         .HasColumnName("species");
 
-                    // Corvax-TTS-Start
                     b.Property<string>("Voice")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("voice");
-                    // Corvax-TTS-End
 
                     b.HasKey("Id")
                         .HasName("PK_profile");
@@ -942,8 +947,8 @@ namespace Content.Server.Database.Migrations.Postgres
                     b.HasKey("Id")
                         .HasName("PK_trait");
 
-                    b.HasIndex("ProfileId")
-                        .HasDatabaseName("IX_trait_profile_id");
+                    b.HasIndex("ProfileId", "TraitName")
+                        .IsUnique();
 
                     b.ToTable("trait", (string)null);
                 });
@@ -1021,7 +1026,14 @@ namespace Content.Server.Database.Migrations.Postgres
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("FK_admin_admin_rank_admin_rank_id");
 
+                    b.HasOne("Content.Server.Database.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .HasConstraintName("FK_admin_server__server_id");
+
                     b.Navigation("AdminRank");
+
+                    b.Navigation("Server");
                 });
 
             modelBuilder.Entity("Content.Server.Database.AdminFlag", b =>

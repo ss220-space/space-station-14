@@ -4,8 +4,10 @@ using Content.Server.Administration.Managers;
 using Content.Server.Database;
 using Content.Server.EUI;
 using Content.Shared.Administration;
+using Content.Shared.CCVar;
 using Content.Shared.Eui;
 using Robust.Server.Player;
+using Robust.Shared.Configuration;
 using Robust.Shared.Network;
 using DbAdminRank = Content.Server.Database.AdminRank;
 using static Content.Shared.Administration.PermissionsEuiMsg;
@@ -18,6 +20,7 @@ namespace Content.Server.Administration.UI
         [Dependency] private readonly IPlayerManager _playerManager = default!;
         [Dependency] private readonly IServerDbManager _db = default!;
         [Dependency] private readonly IAdminManager _adminManager = default!;
+        [Dependency] private readonly IConfigurationManager _cfg = default!;
 
         private bool _isLoading;
 
@@ -337,7 +340,8 @@ namespace Content.Server.Administration.UI
                 Flags = GenAdminFlagList(ca.PosFlags, ca.NegFlags),
                 AdminRankId = ca.RankId,
                 UserId = userId.UserId,
-                Title = ca.Title
+                Title = ca.Title,
+                Server = await _db.AddOrGetServer(_cfg.GetCVar(CCVars.AdminLogsServerName))
             };
 
             await _db.AddAdminAsync(admin);
