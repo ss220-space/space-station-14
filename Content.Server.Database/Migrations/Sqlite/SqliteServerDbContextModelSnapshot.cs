@@ -20,30 +20,28 @@ namespace Content.Server.Database.Migrations.Sqlite
             modelBuilder.Entity("Content.Server.Database.Admin", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT")
                         .HasColumnName("user_id");
+
+                    b.Property<int>("ServerId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("server_id");
 
                     b.Property<int?>("AdminRankId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("admin_rank_id");
 
-                    b.Property<int?>("ServerId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("server_id");
-
                     b.Property<string>("Title")
                         .HasColumnType("TEXT")
                         .HasColumnName("title");
 
-                    b.HasKey("UserId")
+                    b.HasKey("UserId", "ServerId")
                         .HasName("PK_admin");
 
                     b.HasIndex("AdminRankId")
                         .HasDatabaseName("IX_admin_admin_rank_id");
 
-                    b.HasIndex("ServerId")
-                        .HasDatabaseName("IX_admin__server_id");
+                    b.HasIndex("ServerId");
 
                     b.ToTable("admin", (string)null);
                 });
@@ -68,13 +66,16 @@ namespace Content.Server.Database.Migrations.Sqlite
                         .HasColumnType("INTEGER")
                         .HasColumnName("negative");
 
+                    b.Property<int>("ServerId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("server_id");
+
                     b.HasKey("Id")
                         .HasName("PK_admin_flag");
 
-                    b.HasIndex("AdminId")
-                        .HasDatabaseName("IX_admin_flag_admin_id");
+                    b.HasIndex("AdminId", "ServerId");
 
-                    b.HasIndex("Flag", "AdminId")
+                    b.HasIndex("Flag", "AdminId", "ServerId")
                         .IsUnique();
 
                     b.ToTable("admin_flag", (string)null);
@@ -963,7 +964,9 @@ namespace Content.Server.Database.Migrations.Sqlite
                     b.HasOne("Content.Server.Database.Server", "Server")
                         .WithMany()
                         .HasForeignKey("ServerId")
-                        .HasConstraintName("FK_admin_server__server_id");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_admin_server_server_id");
 
                     b.Navigation("AdminRank");
 
@@ -974,10 +977,10 @@ namespace Content.Server.Database.Migrations.Sqlite
                 {
                     b.HasOne("Content.Server.Database.Admin", "Admin")
                         .WithMany("Flags")
-                        .HasForeignKey("AdminId")
+                        .HasForeignKey("AdminId", "ServerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_admin_flag_admin_admin_id");
+                        .HasConstraintName("FK_admin_flag_admin__admin_server_id__admin_user_id");
 
                     b.Navigation("Admin");
                 });
