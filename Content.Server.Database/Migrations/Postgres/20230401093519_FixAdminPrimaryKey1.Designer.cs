@@ -5,6 +5,7 @@ using System.Text.Json;
 using Content.Server.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Content.Server.Database.Migrations.Postgres
 {
     [DbContext(typeof(PostgresServerDbContext))]
-    partial class PostgresServerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230401093519_FixAdminPrimaryKey1")]
+    partial class FixAdminPrimaryKey1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,43 +53,6 @@ namespace Content.Server.Database.Migrations.Postgres
                     b.HasIndex("ServerId");
 
                     b.ToTable("admin", (string)null);
-                });
-
-            modelBuilder.Entity("Content.Server.Database.AdminFlag", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("admin_flag_id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<Guid>("AdminId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("admin_id");
-
-                    b.Property<string>("Flag")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("flag");
-
-                    b.Property<bool>("Negative")
-                        .HasColumnType("boolean")
-                        .HasColumnName("negative");
-
-                    b.Property<int>("ServerId")
-                        .HasColumnType("integer")
-                        .HasColumnName("server_id");
-
-                    b.HasKey("Id")
-                        .HasName("PK_admin_flag");
-
-                    b.HasIndex("AdminId", "ServerId");
-
-                    b.HasIndex("Flag", "AdminId", "ServerId")
-                        .IsUnique();
-
-                    b.ToTable("admin_flag", (string)null);
                 });
 
             modelBuilder.Entity("Content.Server.Database.AdminLog", b =>
@@ -1039,18 +1004,6 @@ namespace Content.Server.Database.Migrations.Postgres
                     b.Navigation("Server");
                 });
 
-            modelBuilder.Entity("Content.Server.Database.AdminFlag", b =>
-                {
-                    b.HasOne("Content.Server.Database.Admin", "Admin")
-                        .WithMany("Flags")
-                        .HasForeignKey("AdminId", "ServerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_admin_flag_admin__admin_server_id__admin_user_id");
-
-                    b.Navigation("Admin");
-                });
-
             modelBuilder.Entity("Content.Server.Database.AdminLog", b =>
                 {
                     b.HasOne("Content.Server.Database.Round", "Round")
@@ -1273,11 +1226,6 @@ namespace Content.Server.Database.Migrations.Postgres
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_player_round_round_rounds_id");
-                });
-
-            modelBuilder.Entity("Content.Server.Database.Admin", b =>
-                {
-                    b.Navigation("Flags");
                 });
 
             modelBuilder.Entity("Content.Server.Database.AdminLog", b =>

@@ -81,8 +81,17 @@ namespace Content.Server.Database
                 .WithMany(p => p!.Admins)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            modelBuilder.Entity<Admin>()
+                .HasKey(admin => new { admin.UserId, admin.ServerId });
+
             modelBuilder.Entity<AdminFlag>()
-                .HasIndex(f => new {f.Flag, f.AdminId})
+                .HasOne(flag => flag.Admin)
+                .WithMany(admin => admin.Flags)
+                .HasForeignKey(flag => new { flag.AdminId, flag.ServerId })
+                .HasPrincipalKey(admin => new { admin.UserId, admin.ServerId });
+
+            modelBuilder.Entity<AdminFlag>()
+                .HasIndex(f => new { f.Flag, f.AdminId, f.ServerId })
                 .IsUnique();
 
             modelBuilder.Entity<AdminRankFlag>()
@@ -319,7 +328,8 @@ namespace Content.Server.Database
     public class Admin
     {
         [Key] public Guid UserId { get; set; }
-        [Key] public Server? Server { get; set; }
+        [Key] public int ServerId { get; set; }
+        public Server? Server { get; set; }
         public string? Title { get; set; }
 
         public int? AdminRankId { get; set; }
@@ -334,6 +344,7 @@ namespace Content.Server.Database
         public bool Negative { get; set; }
 
         public Guid AdminId { get; set; }
+        public int ServerId { get; set; }
         public Admin Admin { get; set; } = default!;
     }
 
