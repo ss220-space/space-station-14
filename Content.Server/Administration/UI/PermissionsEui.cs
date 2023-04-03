@@ -341,7 +341,7 @@ namespace Content.Server.Administration.UI
                 AdminRankId = ca.RankId,
                 UserId = userId.UserId,
                 Title = ca.Title,
-                Server = await _db.AddOrGetServer(_cfg.GetCVar(CCVars.AdminLogsServerName))
+                ServerId = (await _db.AddOrGetServer(_cfg.GetCVar(CCVars.AdminLogsServerName))).Id
             };
 
             await _db.AddAdminAsync(admin);
