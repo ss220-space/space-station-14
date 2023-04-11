@@ -990,12 +990,17 @@ namespace Content.Server.Database.Migrations.Postgres
             modelBuilder.Entity("Content.Server.Database.Whitelist", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasColumnName("user_id");
 
-                    b.HasKey("UserId")
+                    b.Property<int>("ServerId")
+                        .HasColumnType("integer")
+                        .HasColumnName("server_id");
+
+                    b.HasKey("UserId", "ServerId")
                         .HasName("PK_whitelist");
+
+                    b.HasIndex("ServerId");
 
                     b.ToTable("whitelist", (string)null);
                 });
@@ -1256,6 +1261,18 @@ namespace Content.Server.Database.Migrations.Postgres
                         .HasConstraintName("FK_trait_profile_profile_id");
 
                     b.Navigation("Profile");
+                });
+
+            modelBuilder.Entity("Content.Server.Database.Whitelist", b =>
+                {
+                    b.HasOne("Content.Server.Database.Server", "Server")
+                        .WithMany()
+                        .HasForeignKey("ServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_whitelist_server_server_id");
+
+                    b.Navigation("Server");
                 });
 
             modelBuilder.Entity("PlayerRound", b =>

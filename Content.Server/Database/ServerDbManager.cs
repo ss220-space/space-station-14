@@ -191,11 +191,11 @@ namespace Content.Server.Database
 
         #region Whitelist
 
-        Task<bool> GetWhitelistStatusAsync(NetUserId player);
+        Task<bool> GetWhitelistStatusAsync(NetUserId player, string serverName);
 
-        Task AddToWhitelistAsync(NetUserId player);
+        Task AddToWhitelistAsync(NetUserId player, int serverId);
 
-        Task RemoveFromWhitelistAsync(NetUserId player);
+        Task RemoveFromWhitelistAsync(NetUserId player, string serverName);
 
         #endregion
 
@@ -546,22 +546,22 @@ namespace Content.Server.Database
             return _db.GetAdminLogsJson(filter);
         }
 
-        public Task<bool> GetWhitelistStatusAsync(NetUserId player)
+        public Task<bool> GetWhitelistStatusAsync(NetUserId player, string serverName)
         {
             DbReadOpsMetric.Inc();
-            return _db.GetWhitelistStatusAsync(player);
+            return _db.GetWhitelistStatusAsync(player, serverName);
         }
 
-        public Task AddToWhitelistAsync(NetUserId player)
+        public Task AddToWhitelistAsync(NetUserId player, int ServerId)
         {
             DbWriteOpsMetric.Inc();
-            return _db.AddToWhitelistAsync(player);
+            return _db.AddToWhitelistAsync(player, ServerId);
         }
 
-        public Task RemoveFromWhitelistAsync(NetUserId player)
+        public Task RemoveFromWhitelistAsync(NetUserId player, string serverName)
         {
             DbWriteOpsMetric.Inc();
-            return _db.RemoveFromWhitelistAsync(player);
+            return _db.RemoveFromWhitelistAsync(player, serverName);
         }
 
         public Task AddUploadedResourceLogAsync(NetUserId user, DateTime date, string path, byte[] data)

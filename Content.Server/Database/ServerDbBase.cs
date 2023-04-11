@@ -847,25 +847,28 @@ namespace Content.Server.Database
 
         #region Whitelist
 
-        public async Task<bool> GetWhitelistStatusAsync(NetUserId player)
+        public async Task<bool> GetWhitelistStatusAsync(NetUserId player, string serverName)
         {
             await using var db = await GetDb();
 
-            return await db.DbContext.Whitelist.AnyAsync(w => w.UserId == player);
+            return await db.DbContext.Whitelist.AnyAsync(w => w.UserId == player && w.Server != null && w.Server.Name == serverName);
         }
 
-        public async Task AddToWhitelistAsync(NetUserId player)
+        public async Task AddToWhitelistAsync(NetUserId player, int ServerId)
         {
             await using var db = await GetDb();
 
-            db.DbContext.Whitelist.Add(new Whitelist { UserId = player });
+            db.DbContext.Whitelist.Add(new Whitelist {
+                UserId = player,
+                ServerId = ServerId
+            });
             await db.DbContext.SaveChangesAsync();
         }
 
-        public async Task RemoveFromWhitelistAsync(NetUserId player)
+        public async Task RemoveFromWhitelistAsync(NetUserId player, string serverName)
         {
             await using var db = await GetDb();
-            var entry = await db.DbContext.Whitelist.SingleAsync(w => w.UserId == player);
+            var entry = await db.DbContext.Whitelist.SingleAsync(w => w.UserId == player && w.Server != null && w.Server.Name == serverName);
             db.DbContext.Whitelist.Remove(entry);
             await db.DbContext.SaveChangesAsync();
         }
