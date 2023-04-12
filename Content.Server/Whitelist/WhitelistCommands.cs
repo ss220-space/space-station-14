@@ -12,6 +12,8 @@ namespace Content.Server.Whitelist;
 [AdminCommand(AdminFlags.Ban)]
 public sealed class AddWhitelistCommand : IConsoleCommand
 {
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
+
     public string Command => "whitelistadd";
     public string Description => Loc.GetString("command-whitelistadd-description");
     public string Help => Loc.GetString("command-whitelistadd-help");
@@ -29,14 +31,16 @@ public sealed class AddWhitelistCommand : IConsoleCommand
         if (data != null)
         {
             var guid = data.UserId;
-            var isWhitelisted = await db.GetWhitelistStatusAsync(guid);
+            var isWhitelisted = await db.GetWhitelistStatusAsync(guid, _cfg.GetCVar(CCVars.AdminLogsServerName));
             if (isWhitelisted)
             {
                 shell.WriteLine(Loc.GetString("command-whitelistadd-existing", ("username", data.Username)));
                 return;
             }
 
-            await db.AddToWhitelistAsync(guid);
+            var serverId = (await db.AddOrGetServer(_cfg.GetCVar(CCVars.AdminLogsServerName))).Id;
+
+            await db.AddToWhitelistAsync(guid, serverId);
             shell.WriteLine(Loc.GetString("command-whitelistadd-added", ("username", data.Username)));
             return;
         }
@@ -48,6 +52,8 @@ public sealed class AddWhitelistCommand : IConsoleCommand
 [AdminCommand(AdminFlags.Ban)]
 public sealed class RemoveWhitelistCommand : IConsoleCommand
 {
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
+
     public string Command => "whitelistremove";
     public string Description => Loc.GetString("command-whitelistremove-description");
     public string Help => Loc.GetString("command-whitelistremove-help");
@@ -65,14 +71,14 @@ public sealed class RemoveWhitelistCommand : IConsoleCommand
         if (data != null)
         {
             var guid = data.UserId;
-            var isWhitelisted = await db.GetWhitelistStatusAsync(guid);
+            var isWhitelisted = await db.GetWhitelistStatusAsync(guid, _cfg.GetCVar(CCVars.AdminLogsServerName));
             if (!isWhitelisted)
             {
                 shell.WriteLine(Loc.GetString("command-whitelistremove-existing", ("username", data.Username)));
                 return;
             }
 
-            await db.RemoveFromWhitelistAsync(guid);
+            await db.RemoveFromWhitelistAsync(guid, _cfg.GetCVar(CCVars.AdminLogsServerName));
             shell.WriteLine(Loc.GetString("command-whitelistremove-removed", ("username", data.Username)));
             return;
         }
@@ -84,6 +90,8 @@ public sealed class RemoveWhitelistCommand : IConsoleCommand
 [AdminCommand(AdminFlags.Ban)]
 public sealed class KickNonWhitelistedCommand : IConsoleCommand
 {
+    [Dependency] private readonly IConfigurationManager _cfg = default!;
+
     public string Command => "kicknonwhitelisted";
     public string Description => Loc.GetString("command-kicknonwhitelisted-description");
     public string Help => Loc.GetString("command-kicknonwhitelisted-help");
@@ -106,7 +114,7 @@ public sealed class KickNonWhitelistedCommand : IConsoleCommand
             if (await db.GetAdminDataForAsync(session.UserId) is not null)
                 continue;
 
-            if (!await db.GetWhitelistStatusAsync(session.UserId))
+            if (!await db.GetWhitelistStatusAsync(session.UserId, _cfg.GetCVar(CCVars.AdminLogsServerName)))
             {
                 net.DisconnectChannel(session.ConnectedClient, Loc.GetString("whitelist-not-whitelisted"));
             }

@@ -186,6 +186,9 @@ namespace Content.Server.Database
                 .WithMany(author => author.AdminNotesDeleted)
                 .HasForeignKey(note => note.DeletedById)
                 .HasPrincipalKey(author => author.UserId);
+
+            modelBuilder.Entity<Whitelist>()
+                .HasKey(w => new { w.UserId, w.ServerId });
         }
 
         public virtual IQueryable<AdminLog> SearchLogs(IQueryable<AdminLog> query, string searchText)
@@ -323,6 +326,8 @@ namespace Content.Server.Database
     public class Whitelist
     {
         [Required, Key] public Guid UserId { get; set; }
+        [Required, Key] public int ServerId { get; set; }
+        public Server? Server { get; set; }
     }
 
     public class Admin
