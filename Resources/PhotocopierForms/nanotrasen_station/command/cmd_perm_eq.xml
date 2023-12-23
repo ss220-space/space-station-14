@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>cmd_perm_eq</FormId>
+  <PrototypeId>PaperNtFormCmd</PrototypeId>
+  <EntityName>форма НТ-КОМ-РИС</EntityName>
+  <PhotocopierTitle>Разрешение на использование снаряжения</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-КОМ-РИС[/bold]
+[head=2]Разрешение на использование снаряжения[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД [/italic]
+
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности главы отдела (полное наименование отдела), разрешаю использовать (ФИО) в должности (полное наименование должности) следующее рабочее снаряжение отдела:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

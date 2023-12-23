@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>rnd_mod_req</FormId>
+  <PrototypeId>PaperNtFormSci</PrototypeId>
+  <EntityName>форма НТ-ИСЛ-ЗМ</EntityName>
+  <PhotocopierTitle>Запрос на проведение модернизации</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-ИСЛ-ЗМ[/bold]
+[head=2]Запрос на проведение модернизации[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД[/italic]
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности (полное наименование должности), прошу модернизировать приборы в (название отдела или объекта) по причине (причина запроса).
+Перечень модернизации:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

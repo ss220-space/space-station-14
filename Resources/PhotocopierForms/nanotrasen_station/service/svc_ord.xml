@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>svc_ord</FormId>
+  <PrototypeId>PaperNtFormCmd</PrototypeId>
+  <EntityName>форма НТ-СРВ-ЗПП</EntityName>
+  <PhotocopierTitle>Заказ на производство продукта</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-СРВ-ЗПП[/bold]
+[head=2]Заказ на производство продукта[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД[/italic]
+
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности (полное наименование должности), прошу произвести продукцию отделом (наименование отдела).
+Перечень необходимых продуктов:
+
+Причина заказа:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

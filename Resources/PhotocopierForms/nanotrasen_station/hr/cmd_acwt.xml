@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>cmd_acwt</FormId>
+  <PrototypeId>PaperNtFormCmd</PrototypeId>
+  <EntityName>форма НТ-КОМ-ОПД</EntityName>
+  <PhotocopierTitle>Заявление на получение доступа</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-КОМ-ОПД[/bold]
+[head=2]Заявление на получение доступа[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД [/italic]
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности (полное наименование должности), прошу предоставить мне следующие доступы:
+
+Причина получения повышенного доступа:
+
+[italic]Место для печатей – Глава(ы) отдела(ов)[/italic]]]></Content>
+</Form>
