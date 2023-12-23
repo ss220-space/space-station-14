@@ -12,25 +12,31 @@
     bodyType: Dynamic
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeCircle
-        radius: 0.2
-      density: 100
-      mask:
-      - TableMask
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.2
+        density: 100
+        mask:
+        - TableMask
   - type: Sprite
     sprite: Structures/Furniture/chairs.rsi
     noRot: true
-    netsync: false
   - type: Strap
     position: Stand
-    buckleOffset: "0,0.15"
+    buckleOffset: "0,-0.05"
   - type: Pullable
   - type: Damageable
     damageContainer: Inorganic
     damageModifierSet: Metallic
   - type: Destructible
     thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 100
+      behaviors:
+        - !type:DoActsBehavior
+          acts: [ "Destruction" ]
     - trigger:
         !type:DamageTrigger
         damage: 50
@@ -41,7 +47,7 @@
         sound:
           path: /Audio/Effects/metalbreak.ogg
   - type: StaticPrice
-    price: 50
+    price: 10
 
 - type: entity
   name: chair
@@ -50,6 +56,8 @@
   components:
   - type: Transform
     anchored: true
+  - type: Physics
+    bodyType: Static
   - type: Anchorable
   - type: Rotatable
   - type: Sprite
@@ -57,6 +65,15 @@
   - type: Construction
     graph: Seat
     node: chair
+
+- type: entity
+  name: chair
+  id: ChairGreyscale
+  parent: Chair
+  suffix: White
+  components:
+  - type: Sprite
+    state: chair-greyscale
 
 - type: entity
   name: stool
@@ -80,6 +97,8 @@
     anchored: true
   - type: Rotatable
     rotateWhileAnchored: true
+  - type: Physics
+    bodyType: Static
   - type: Anchorable
   - type: Sprite
     state: bar
@@ -99,6 +118,7 @@
   - type: Construction
     graph: Seat
     node: chairOffice
+  - type: Cart #SS220-Cart-system
 
 - type: entity
   name: dark office chair
@@ -110,6 +130,7 @@
   - type: Construction
     graph: Seat
     node: chairOfficeDark
+  - type: Cart #SS220-Cart-system
 
 - type: entity
   name: comfy chair
@@ -119,6 +140,8 @@
   components:
   - type: Transform
     anchored: true
+  - type: Physics
+    bodyType: Static
   - type: Anchorable
   - type: Rotatable
   - type: Sprite
@@ -135,10 +158,14 @@
   components:
   - type: Transform
     anchored: true
+  - type: Physics
+    bodyType: Static
   - type: Anchorable
   - type: Rotatable
   - type: Sprite
     state: shuttle
+  - type: Strap
+    hasSeatbelt: true
   - type: Construction
     graph: Seat
     node: chairPilotSeat
@@ -193,6 +220,20 @@
     node: chairRitual
 
 - type: entity
+  id: ChairMeat
+  parent: SeatBase
+  name: meat chair
+  description: Uncomfortably sweaty.
+  components:
+  - type: Anchorable
+  - type: Rotatable
+  - type: Sprite
+    state: meat
+  - type: Construction
+    graph: Seat
+    node: chairMeat
+
+- type: entity
   name: cursed chair
   id: ChairCursed
   parent: SeatBase
@@ -220,6 +261,48 @@
     node: chairCursed
 
 - type: entity
+  name: web chair
+  id: ChairWeb
+  description: For true web developers.
+  parent: SeatBase
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Anchorable
+  - type: Rotatable
+  - type: Sprite
+    sprite: Structures/Web/chair.rsi
+    state: icon
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path:
+          "/Audio/Weapons/slash.ogg"
+  - type: Damageable
+    damageModifierSet: Web
+  - type: Destructible
+    thresholds:
+    - trigger:
+        !type:DamageTrigger
+        damage: 50
+      behaviors:
+      - !type:DoActsBehavior
+        acts: ["Destruction"]
+      - !type:PlaySoundBehavior
+        sound:
+          path: /Audio/Effects/woodhit.ogg
+      - !type:SpawnEntitiesBehavior
+        spawn:
+          MaterialWebSilk:
+            min: 1
+            max: 1
+  - type: Construction
+    graph: WebStructures
+    node: chair
+
+- type: entity
   parent: [SeatBase, BaseFoldable]
   id: ChairFolding
   name: folding chair
@@ -235,12 +318,12 @@
       map: ["foldedLayer"]
       visible: false
   - type: Item
-    size: 50
+    size: Huge
   - type: Appearance
   - type: MeleeWeapon
     damage:
       types:
-        Blunt: 15
+        Blunt: 8
   - type: Construction
     graph: Seat
     node: chairFolding
@@ -254,3 +337,19 @@
   components:
   - type: Foldable
     folded: true
+
+- type: entity
+  name: steel bench
+  id: SteelBench
+  parent: SeatBase
+  description: A long chair made for a metro. Really standard design.
+  components:
+  - type: Transform
+    anchored: true
+  - type: Physics
+    bodyType: Static
+  - type: Anchorable
+  - type: Rotatable
+  - type: Sprite
+    state: steel-bench
+

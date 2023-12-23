@@ -1,4 +1,6 @@
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.Paper;
+using Content.Shared.SS220.Photocopier;
 using Robust.Shared.Audio;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
@@ -6,7 +8,7 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 namespace Content.Server.Fax;
 
 [RegisterComponent]
-public sealed class FaxMachineComponent : Component
+public sealed partial class FaxMachineComponent : Component
 {
     /// <summary>
     /// Name with which the fax will be visible to others on the network
@@ -50,6 +52,15 @@ public sealed class FaxMachineComponent : Component
     [DataField("receiveNukeCodes")]
     public bool ReceiveNukeCodes { get; set; } = false;
 
+    // Corvax-StationGoal-Start
+    /// <summary>
+    /// Should that fax receive station goal info
+    /// </summary>
+    [ViewVariables(VVAccess.ReadWrite)]
+    [DataField("receiveStationGoal")]
+    public bool ReceiveStationGoal { get; set; } = false;
+    // Corvax-StationGoal-End
+
     /// <summary>
     /// Sound to play when fax has been emagged
     /// </summary>
@@ -79,7 +90,7 @@ public sealed class FaxMachineComponent : Component
     /// </summary>
     [ViewVariables]
     [DataField("printingQueue")]
-    public Queue<FaxPrintout> PrintingQueue { get; } = new();
+    public Queue<FaxPrintout> PrintingQueue { get; private set; } = new();
 
     /// <summary>
     /// Message sending timeout
@@ -121,33 +132,21 @@ public sealed class FaxMachineComponent : Component
 }
 
 [DataDefinition]
-public sealed class FaxPrintout
+public sealed partial class FaxPrintout
 {
-    [DataField("name", required: true)]
-    public string Name { get; } = default!;
+    [DataField("dataToCopy")]
+    public Dictionary<Type, IPhotocopiedComponentData>? DataToCopy { get; private set; }
 
-    [DataField("content", required: true)]
-    public string Content { get; } = default!;
-
-    [DataField("prototypeId", customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>), required: true)]
-    public string PrototypeId { get; } = default!;
-
-    [DataField("stampState")]
-    public string? StampState { get; }
-
-    [DataField("stampedBy")]
-    public List<string> StampedBy { get; } = new();
+    [DataField("metaData")]
+    public PhotocopyableMetaData? MetaData { get; private set; }
 
     private FaxPrintout()
     {
     }
 
-    public FaxPrintout(string content, string name, string? prototypeId, string? stampState = null, List<string>? stampedBy = null)
+    public FaxPrintout(Dictionary<Type, IPhotocopiedComponentData>? dataToCopy, PhotocopyableMetaData? metaData)
     {
-        Content = content;
-        Name = name;
-        PrototypeId = prototypeId ?? "";
-        StampState = stampState;
-        StampedBy = stampedBy ?? new List<string>();
+        DataToCopy = dataToCopy;
+        MetaData = metaData;
     }
 }

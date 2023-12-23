@@ -1,7 +1,6 @@
-﻿using Content.Shared.Construction.Prototypes;
+﻿using Content.Shared.Anomaly;
 using Robust.Shared.Audio;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
-using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
 namespace Content.Server.Anomaly.Components;
 
@@ -11,8 +10,8 @@ namespace Content.Server.Anomaly.Components;
 /// they generate points for the selected server based on
 /// the anomaly's stability and severity.
 /// </summary>
-[RegisterComponent]
-public sealed class AnomalyVesselComponent : Component
+[RegisterComponent, Access(typeof(SharedAnomalySystem))]
+public sealed partial class AnomalyVesselComponent : Component
 {
     /// <summary>
     /// The anomaly that the vessel is storing.
@@ -24,21 +23,8 @@ public sealed class AnomalyVesselComponent : Component
     /// <summary>
     /// A multiplier applied to the amount of points generated.
     /// </summary>
-    [ViewVariables(VVAccess.ReadWrite)]
+    [DataField, ViewVariables(VVAccess.ReadWrite)]
     public float PointMultiplier = 1;
-
-    /// <summary>
-    /// The machine part that affects the point multiplier of the vessel
-    /// </summary>
-    [DataField("machinePartPointModifier", customTypeSerializer: typeof(PrototypeIdSerializer<MachinePartPrototype>))]
-    public string MachinePartPointModifier = "ScanningModule";
-
-    /// <summary>
-    /// A value used to scale the point multiplier
-    /// with the corresponding part rating.
-    /// </summary>
-    [DataField("partRatingPointModifier")]
-    public float PartRatingPointModifier = 1.5f;
 
     /// <summary>
     /// The maximum time between each beep

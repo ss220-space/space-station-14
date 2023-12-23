@@ -8,20 +8,25 @@
   requirements:
     - !type:DepartmentTimeRequirement
       department: Medical
-      time: 18000
-    - !type:OverallPlaytimeRequirement
-      time: 108000
+      time: 180000 # SS220-RoleTime
   weight: 10
   startingGear: CMOGear
-  icon: "ChiefMedicalOfficer"
+  icon: "JobIconChiefMedicalOfficer"
   requireAdminNotify: true
   supervisors: job-supervisors-captain
+  radioBold: true
   access:
   - Medical
   - Command
   - Maintenance
   - Chemistry
   - ChiefMedicalOfficer
+  - Paramedic
+  - Brig
+  special:
+  - !type:AddComponentSpecial
+    components:
+      - type: CommandStaff
 
 - type: startingGear
   id: CMOGear
@@ -31,8 +36,8 @@
     shoes: ClothingShoesColorBrown
     outerClothing: ClothingOuterCoatLabCmo
     id: CMOPDA
-    ears: ClothingHeadsetAltMedical
+    ears: ClothingHeadsetCMO
     belt: ClothingBeltMedicalFilled
-  innerclothingskirt: ClothingUniformJumpskirtCMO
+  innerClothingSkirt: ClothingUniformJumpskirtCMO
   satchel: ClothingBackpackSatchelCMOFilled
   duffelbag: ClothingBackpackDuffelCMOFilled

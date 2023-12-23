@@ -2,13 +2,14 @@
   name: energy sword
   parent: BaseItem
   id: EnergySword
-  description: A very dangerous energy sword. Can be stored in pockets when turned off. Makes a lot of noise when used or turned on.
+  description: A very loud & dangerous sword with a beam made of pure, concentrated plasma. Cuts through unarmored targets like butter.
   components:
   - type: EnergySword
     litDamageBonus:
         types:
-            Slash: 9.5
-            Heat: 9.5
+            Slash: 15
+            Heat: 15
+            Structural: 20
             Blunt: -4.5
     litDisarmMalus: 0.6
   - type: Sprite
@@ -21,23 +22,24 @@
         shader: unshaded
         map: [ "blade" ]
   - type: MeleeWeapon
-    attackRate: 1.5
+    wideAnimationRotation: -135
+    attackRate: 1
     soundHit:
-      path: /Audio/Weapons/genhit1.ogg
+      path: /Audio/Weapons/eblade1.ogg
     damage:
       types:
         Blunt: 4.5
   - type: Item
-    size: 5
+    size: Small
     sprite: Objects/Weapons/Melee/e_sword.rsi
   - type: UseDelay
     delay: 1.0
   - type: PointLight
-    netsync: false
     enabled: false
     radius: 2
     energy: 2
     color: white
+    netsync: false
   - type: Appearance
   - type: ToggleableLightVisuals
     spriteLayer: blade
@@ -50,6 +52,8 @@
         shader: unshaded
   - type: DisarmMalus
     malus: 0
+  - type: Reflect
+    enabled: false
 
 - type: entity
   name: pen
@@ -62,8 +66,8 @@
     secret: true
     litDamageBonus:
         types:
-            Slash: 7.5
-            Heat: 7.5
+            Slash: 10
+            Heat: 10
             Blunt: -1
     litDisarmMalus: 0.4
     activateSound: !type:SoundPathSpecifier
@@ -84,22 +88,23 @@
         shader: unshaded
         map: [ "blade" ]
   - type: MeleeWeapon
+    wideAnimationRotation: -135
     attackRate: 1
     hidden: true
     damage:
       types:
         Blunt: 1
   - type: Item
-    size: 2
+    size: Tiny
     sprite: Objects/Weapons/Melee/e_dagger.rsi
   - type: UseDelay
     delay: 1.0
   - type: PointLight
-    netsync: false
     enabled: false
     radius: 1.5
     energy: 1.5
     color: white
+    netsync: false
   - type: Appearance
   - type: ToggleableLightVisuals
     spriteLayer: blade
@@ -115,3 +120,111 @@
     - Write
   - type: DisarmMalus
     malus: 0
+
+- type: entity
+  parent: BaseItem
+  id: EnergyDaggerBox
+  name: e-dagger box
+  suffix: E-Dagger
+  description: A small box containing an e-dagger. Packaging disintegrates when opened, leaving no evidence behind.
+  components:
+  - type: Item
+    size: Tiny
+  - type: Sprite
+    sprite: Objects/Storage/penbox.rsi
+    state: e_dagger
+  - type: SpawnItemsOnUse
+    items:
+    - id: EnergyDagger
+    sound:
+      path: /Audio/Effects/unwrap.ogg
+
+- type: entity
+  name: energy cutlass
+  parent: EnergySword
+  id: EnergyCutlass
+  description: An exotic energy weapon.
+  components:
+  - type: EnergySword
+    secret: true
+    litDamageBonus:
+        types:
+            Slash: 10
+            Heat: 12
+            Blunt: -1
+            Structural: 10
+    litDisarmMalus: 0.6
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/e_cutlass.rsi
+    layers:
+      - state: e_cutlass
+      - state: e_cutlass_blade
+        color: "#e95151"
+        visible: false
+        shader: unshaded
+        map: [ "blade" ]
+  - type: Item
+    size: Small
+    sprite: Objects/Weapons/Melee/e_cutlass.rsi
+
+- type: entity
+  name: Double Bladed Energy Sword
+  parent: EnergySword
+  id: EnergySwordDouble
+  description: Syndicate Command Interns thought that having one blade on the energy sword was not enough. This can be stored in pockets.
+  components:
+  - type: Wieldable
+  - type: EnergySword
+    litDamageBonus:
+        types:
+            Slash: 12
+            Heat: 12
+            Structural: 15
+            Blunt: -4.5
+    litDisarmMalus: 0.7
+  - type: MeleeWeapon
+    wideAnimationRotation: -135
+    attackRate: 1.5
+    angle: 100
+    soundHit:
+      path: /Audio/Weapons/eblade1.ogg
+    damage:
+      types:
+        Blunt: 4.5
+  - type: Sprite
+    sprite: Objects/Weapons/Melee/e_sword_double.rsi
+    layers:
+      - state: e_sword_double
+      - state: e_sword_double_blade
+        color: "#FFFFFF"
+        visible: false
+        shader: unshaded
+        map: [ "blade" ]
+  - type: Item
+    size: Small
+    sprite: Objects/Weapons/Melee/e_sword_double.rsi
+  - type: Reflect
+    enabled: true
+    reflects: Energy
+    reflectProb: .95
+    spread: 75
+  - type: Blocking
+    passiveBlockModifier:
+      coefficients:
+        Blunt: 0.3
+        Slash: 0.3
+        Piercing: 0.3
+        Heat: 0.3
+        Stamina: 0.3
+    activeBlockModifier:
+      coefficients:
+        Blunt: 0.6
+        Slash: 0.6
+        Piercing: 0.6
+        Heat: 0.6
+        Stamina: 0.6
+      flatReductions:
+        Heat: 1
+        Piercing: 1
+  - type: UseDelay
+    delay: 1

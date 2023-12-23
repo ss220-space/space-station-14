@@ -1,6 +1,6 @@
+using Content.Server.Power.Components;
 using Content.Server.Station.Systems;
 using Content.Shared.AlertLevel;
-using Robust.Server.GameObjects;
 
 namespace Content.Server.AlertLevel;
 
@@ -13,17 +13,19 @@ public sealed class AlertLevelDisplaySystem : EntitySystem
     {
         SubscribeLocalEvent<AlertLevelChangedEvent>(OnAlertChanged);
         SubscribeLocalEvent<AlertLevelDisplayComponent, ComponentInit>(OnDisplayInit);
+        SubscribeLocalEvent<AlertLevelDisplayComponent, PowerChangedEvent>(OnPowerChanged);
     }
 
     private void OnAlertChanged(AlertLevelChangedEvent args)
     {
-        foreach (var (_, appearance) in EntityManager.EntityQuery<AlertLevelDisplayComponent, AppearanceComponent>())
+        var query = EntityQueryEnumerator<AlertLevelDisplayComponent, AppearanceComponent>();
+        while (query.MoveNext(out var uid, out _, out var appearance))
         {
-            _appearance.SetData(appearance.Owner, AlertLevelDisplay.CurrentLevel, args.AlertLevel, appearance);
+            _appearance.SetData(uid, AlertLevelDisplay.CurrentLevel, args.AlertLevel, appearance);
         }
     }
 
-    private void OnDisplayInit(EntityUid uid, AlertLevelDisplayComponent component, ComponentInit args)
+    private void OnDisplayInit(EntityUid uid, AlertLevelDisplayComponent alertLevelDisplay, ComponentInit args)
     {
         if (TryComp(uid, out AppearanceComponent? appearance))
         {
@@ -33,5 +35,12 @@ public sealed class AlertLevelDisplaySystem : EntitySystem
                 _appearance.SetData(uid, AlertLevelDisplay.CurrentLevel, alert.CurrentLevel, appearance);
             }
         }
+    }
+    private void OnPowerChanged(EntityUid uid, AlertLevelDisplayComponent alertLevelDisplay, ref PowerChangedEvent args)
+    {
+        if (!TryComp(uid, out AppearanceComponent? appearance))
+            return;
+
+        _appearance.SetData(uid, AlertLevelDisplay.Powered, args.Powered, appearance);
     }
 }

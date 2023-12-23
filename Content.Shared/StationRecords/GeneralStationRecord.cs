@@ -1,3 +1,5 @@
+using Content.Shared.Preferences;
+using Content.Shared.SS220.CriminalRecords;
 using Robust.Shared.Enums;
 using Robust.Shared.Serialization;
 
@@ -62,4 +64,23 @@ public sealed class GeneralStationRecord
     /// </summary>
     [ViewVariables]
     public string? Fingerprint;
+
+    /// <summary>
+    ///     DNA of the person.
+    /// </summary>
+    [ViewVariables]
+    public string? DNA;
+
+    /// <sumary>
+    ///     HumanoidCharacterProfile
+    /// </sumary>
+    [ViewVariables] public HumanoidCharacterProfile? Profile;
+
+    //SS220 Criminal-Records begin
+    [ViewVariables]
+    public CriminalRecordCatalog? CriminalRecords;
+
+    [ViewVariables]
+    public bool IsInCryo = false;
+    //SS220 Criminal-Records end
 }

@@ -1,6 +1,6 @@
-using System.Linq;
 using Content.Shared.Physics.Pull;
 using Content.Shared.Pulling.Components;
+using Content.Shared.SS220.Cart.Components;
 using JetBrains.Annotations;
 using Robust.Shared.GameStates;
 using Robust.Shared.Map;
@@ -29,11 +29,28 @@ namespace Content.Shared.Pulling
             SubscribeLocalEvent<SharedPullableComponent, ComponentShutdown>(OnShutdown);
             SubscribeLocalEvent<SharedPullableComponent, ComponentGetState>(OnGetState);
             SubscribeLocalEvent<SharedPullableComponent, ComponentHandleState>(OnHandleState);
+
+            SubscribeLocalEvent<SharedPullerComponent, ComponentStartup>(OnPullerStartup); //SS220-Cart-system
         }
+
+        //SS220-Cart-system begin
+        private void OnPullerStartup(EntityUid uid, SharedPullerComponent component, ComponentStartup args)
+        {
+            // Soooooooooo this is fucking dumb
+            // but I WILL NOT rewrite the whole component to be
+            // networked for the space wizards to do it themselves
+            // right after me, so this will work for now and I don't really care
+            // COPIUM
+            if (!HasComp<CartPullerComponent>(uid))
+                return;
+
+            component.NeedsHands = false;
+        }
+        //SS220-Cart-system end
 
         private void OnGetState(EntityUid uid, SharedPullableComponent component, ref ComponentGetState args)
         {
-            args.State = new PullableComponentState(component.Puller);
+            args.State = new PullableComponentState(GetNetEntity(component.Puller));
         }
 
         private void OnHandleState(EntityUid uid, SharedPullableComponent component, ref ComponentHandleState args)
@@ -41,21 +58,23 @@ namespace Content.Shared.Pulling
             if (args.Current is not PullableComponentState state)
                 return;
 
-            if (!state.Puller.HasValue)
+            var puller = EnsureEntity<SharedPullableComponent>(state.Puller, uid);
+
+            if (!puller.HasValue)
             {
                 ForceDisconnectPullable(component);
                 return;
             }
 
-            if (component.Puller == state.Puller)
+            if (component.Puller == puller)
             {
                 // don't disconnect and reconnect a puller for no reason
                 return;
             }
 
-            if (!TryComp<SharedPullerComponent?>(state.Puller.Value, out var comp))
+            if (!TryComp<SharedPullerComponent>(puller, out var comp))
             {
-                Logger.Error($"Pullable state for entity {ToPrettyString(uid)} had invalid puller entity {ToPrettyString(state.Puller.Value)}");
+                Log.Error($"Pullable state for entity {ToPrettyString(uid)} had invalid puller entity {ToPrettyString(puller.Value)}");
                 // ensure it disconnects from any different puller, still
                 ForceDisconnectPullable(component);
                 return;
@@ -193,7 +212,7 @@ namespace Content.Shared.Pulling
 
             // Don't allow setting a MovingTo if there's no puller.
             // The other half of this guarantee (shutting down a MovingTo if the puller goes away) is enforced in ForceRelationship.
-            if ((pullable.Puller == null) && (movingTo != null))
+            if (pullable.Puller == null && movingTo != null)
             {
                 return;
             }
@@ -208,6 +227,19 @@ namespace Content.Shared.Pulling
             {
                 RaiseLocalEvent(pullable.Owner, new PullableMoveMessage(), true);
             }
+        }
+
+        /// <summary>
+        /// Changes if the entity needs a hand in order to be able to pull objects.
+        /// </summary>
+        public void ChangeHandRequirement(EntityUid uid, bool needsHands, SharedPullerComponent? comp)
+        {
+            if (!Resolve(uid, ref comp, false))
+                return;
+
+            comp.NeedsHands = needsHands;
+
+            Dirty(uid, comp);
         }
     }
 }

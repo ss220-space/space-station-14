@@ -3,8 +3,12 @@
   name: job-name-botanist
   description: job-description-botanist
   playTimeTracker: JobBotanist
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Civilian
+      time: 18000 # SS220-RoleTime
   startingGear: BotanistGear
-  icon: "Botanist"
+  icon: "JobIconBotanist"
   supervisors: job-supervisors-hop
   access:
   - Service
@@ -24,6 +28,6 @@
     ears: ClothingHeadsetService
     outerClothing: ClothingOuterApronBotanist
     belt: ClothingBeltPlantFilled
-  innerclothingskirt: ClothingUniformJumpskirtHydroponics
+  innerClothingSkirt: ClothingUniformJumpskirtHydroponics
   satchel: ClothingBackpackSatchelHydroponicsFilled
   duffelbag: ClothingBackpackDuffelHydroponicsFilled

@@ -3,11 +3,17 @@
   name: job-name-lawyer
   description: job-description-lawyer
   playTimeTracker: JobLawyer
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Civilian
+      time: 72000 # SS220-RoleTime
   startingGear: LawyerGear
-  icon: "Lawyer"
+  setPreference: true # SS220 return-of-the-lawyer
+  icon: "JobIconLawyer"
   supervisors: job-supervisors-hop
   access:
   - Service
+  - Lawyer
   - Brig
   - Maintenance
 
@@ -21,7 +27,7 @@
     ears: ClothingHeadsetSecurity
     # TODO add copy of space law
   inhand:
-    right hand: BriefcaseBrownFilled
-  innerclothingskirt: ClothingUniformJumpskirtLawyerBlack
+    - BriefcaseBrownFilled
+  innerClothingSkirt: ClothingUniformJumpskirtLawyerBlack
   satchel: ClothingBackpackSatchelFilled
   duffelbag: ClothingBackpackDuffelFilled

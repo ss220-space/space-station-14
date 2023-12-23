@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>cmd_dipl</FormId>
+  <PrototypeId>PaperNtFormCmd</PrototypeId>
+  <EntityName>форма НТ-КОМ-ГРМ</EntityName>
+  <PhotocopierTitle>Грамота</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-КОМ-ГРМ[/bold]
+[head=2]Грамота[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД [/italic]
+
+Составитель документа:
+Должность составителя:
+
+(ФИО), в должности (полное наименование должности) награждается грамотой за следующие заслуги:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

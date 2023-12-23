@@ -1,26 +1,88 @@
-﻿using Content.Server.Cuffs;
+using Content.Server.Cuffs;
+using Content.Server.Forensics;
+using Content.Server.Humanoid;
+using Content.Server.Store.Components;
+using Content.Server.Store.Systems;
+using Content.Shared.Chemistry.Components.SolutionManager;
+using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Cuffs.Components;
+using Content.Shared.Humanoid;
 using Content.Shared.Implants;
 using Content.Shared.Implants.Components;
-using Content.Shared.Interaction.Events;
-using Content.Shared.Mobs;
-using Robust.Shared.Containers;
+using Content.Shared.Interaction;
+using Content.Shared.Popups;
+using Content.Shared.Preferences;
+using Content.Shared.SS220.ReagentImplanter;
 
 namespace Content.Server.Implants;
 
 public sealed class SubdermalImplantSystem : SharedSubdermalImplantSystem
 {
     [Dependency] private readonly CuffableSystem _cuffable = default!;
-    [Dependency] private readonly SharedContainerSystem _container = default!;
+    [Dependency] private readonly HumanoidAppearanceSystem _humanoidAppearance = default!;
+    [Dependency] private readonly MetaDataSystem _metaData = default!;
+    [Dependency] private readonly StoreSystem _store = default!;
+    [Dependency] private readonly SharedPopupSystem _popup = default!;
+    [Dependency] private readonly SolutionContainerSystem _solutionContainer = default!;
+    [Dependency] private readonly ForensicsSystem _forensicsSystem = default!;
 
     public override void Initialize()
     {
         base.Initialize();
 
+        SubscribeLocalEvent<SubdermalImplantComponent, UseReagentCapsuleImplantEvent>(OnReagentCapsuleImplant);
         SubscribeLocalEvent<SubdermalImplantComponent, UseFreedomImplantEvent>(OnFreedomImplant);
+        SubscribeLocalEvent<StoreComponent, ImplantRelayEvent<AfterInteractUsingEvent>>(OnStoreRelay);
+        SubscribeLocalEvent<SubdermalImplantComponent, ActivateImplantEvent>(OnActivateImplantEvent);
+        SubscribeLocalEvent<SubdermalImplantComponent, UseDnaScramblerImplantEvent>(OnDnaScramblerImplant);
 
-        SubscribeLocalEvent<ImplantedComponent, MobStateChangedEvent>(RelayToImplantEvent);
-        SubscribeLocalEvent<ImplantedComponent, SuicideEvent>(RelayToImplantEvent);
+    }
+
+    private void OnReagentCapsuleImplant(EntityUid uid, SubdermalImplantComponent component, UseReagentCapsuleImplantEvent args)
+    {
+        if (!TryComp<SolutionContainerManagerComponent>(args.Performer, out var ownerSolutionContainerComp)
+            || !TryComp<ReagentCapsuleComponent>(uid, out var reagentCapsule)
+            || !TryComp<SolutionContainerManagerComponent>(uid, out var capsuleContainer))
+            return;
+
+        if (args.Handled || reagentCapsule.IsUsed)
+            return;
+
+        if (!ownerSolutionContainerComp.Solutions.TryGetValue("chemicals", out var chemicals))
+            return;
+
+        if (!capsuleContainer.Solutions.TryGetValue("beaker", out var beaker))
+            return;
+
+        _solutionContainer.TryTransferSolution(args.Performer, chemicals, beaker, beaker.Volume);
+        reagentCapsule.IsUsed = true;
+        args.Handled = true;
+
+    }
+
+    private void OnStoreRelay(EntityUid uid, StoreComponent store, ImplantRelayEvent<AfterInteractUsingEvent> implantRelay)
+    {
+        var args = implantRelay.Event;
+
+        if (args.Handled)
+            return;
+
+        // can only insert into yourself to prevent uplink checking with renault
+        if (args.Target != args.User)
+            return;
+
+        if (!TryComp<CurrencyComponent>(args.Used, out var currency))
+            return;
+
+        // same as store code, but message is only shown to yourself
+        args.Handled = _store.TryAddCurrency(_store.GetCurrencyValue(args.Used, currency), uid, store);
+
+        if (!args.Handled)
+            return;
+
+        var msg = Loc.GetString("store-currency-inserted-implant", ("used", args.Used));
+        _popup.PopupEntity(msg, args.User, args.User);
+        QueueDel(args.Used);
     }
 
     private void OnFreedomImplant(EntityUid uid, SubdermalImplantComponent component, UseFreedomImplantEvent args)
@@ -29,48 +91,36 @@ public sealed class SubdermalImplantSystem : SharedSubdermalImplantSystem
             return;
 
         _cuffable.Uncuff(component.ImplantedEntity.Value, cuffs.LastAddedCuffs, cuffs.LastAddedCuffs);
+        args.Handled = true;
     }
 
-    #region Relays
-
-    //Relays from the implanted to the implant
-    private void RelayToImplantEvent<T>(EntityUid uid, ImplantedComponent component, T args) where T: notnull
+    private void OnActivateImplantEvent(EntityUid uid, SubdermalImplantComponent component, ActivateImplantEvent args)
     {
-        if (!_container.TryGetContainer(uid, ImplanterComponent.ImplantSlotId, out var implantContainer))
+        args.Handled = true;
+    }
+
+    private void OnDnaScramblerImplant(EntityUid uid, SubdermalImplantComponent component, UseDnaScramblerImplantEvent args)
+    {
+        if (component.ImplantedEntity is not { } ent)
             return;
-        foreach (var implant in implantContainer.ContainedEntities)
-        {
-            RaiseLocalEvent(implant, args);
-        }
-    }
 
-    //Relays from the implanted to the implant
-    private void RelayToImplantEventByRef<T>(EntityUid uid, ImplantedComponent component, ref T args) where T: notnull
-    {
-        if (!_container.TryGetContainer(uid, ImplanterComponent.ImplantSlotId, out var implantContainer))
-            return;
-        foreach (var implant in implantContainer.ContainedEntities)
+        if (TryComp<HumanoidAppearanceComponent>(ent, out var humanoid))
         {
-            RaiseLocalEvent(implant,ref args);
+            var newProfile = HumanoidCharacterProfile.RandomWithSpecies(humanoid.Species);
+            _humanoidAppearance.LoadProfile(ent, newProfile, humanoid);
+            _metaData.SetEntityName(ent, newProfile.Name);
+            if (TryComp<DnaComponent>(ent, out var dna))
+            {
+                dna.DNA = _forensicsSystem.GenerateDNA();
+            }
+            if (TryComp<FingerprintComponent>(ent, out var fingerprint))
+            {
+                fingerprint.Fingerprint = _forensicsSystem.GenerateFingerprint();
+            }
+            _popup.PopupEntity(Loc.GetString("scramble-implant-activated-popup"), ent, ent);
         }
-    }
 
-    //Relays from the implant to the implanted
-    private void RelayToImplantedEvent<T>(EntityUid uid, SubdermalImplantComponent component, T args) where T : EntityEventArgs
-    {
-        if (component.ImplantedEntity != null)
-        {
-            RaiseLocalEvent(component.ImplantedEntity.Value, args);
-        }
+        args.Handled = true;
+        QueueDel(uid);
     }
-
-    private void RelayToImplantedEventByRef<T>(EntityUid uid, SubdermalImplantComponent component, ref T args) where T : EntityEventArgs
-    {
-        if (component.ImplantedEntity != null)
-        {
-            RaiseLocalEvent(component.ImplantedEntity.Value, ref args);
-        }
-    }
-
-    #endregion
 }

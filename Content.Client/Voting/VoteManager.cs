@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Content.Shared.Voting;
 using Robust.Client;
+using Robust.Client.Audio;
 using Robust.Client.Console;
 using Robust.Client.GameObjects;
 using Robust.Client.UserInterface;
@@ -34,7 +35,6 @@ namespace Content.Client.Voting
         [Dependency] private readonly IGameTiming _gameTiming = default!;
         [Dependency] private readonly IClientConsoleHost _console = default!;
         [Dependency] private readonly IBaseClient _client = default!;
-        [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
 
         private readonly Dictionary<StandardVoteType, TimeSpan> _standardVoteTimeouts = new();
         private readonly Dictionary<int, ActiveVote> _votes = new();
@@ -95,6 +95,13 @@ namespace Content.Client.Voting
             }
 
             _popupContainer = container;
+            SetVoteData();
+        }
+
+        private void SetVoteData()
+        {
+            if (_popupContainer == null)
+                return;
 
             foreach (var (vId, vote) in _votes)
             {
@@ -121,9 +128,13 @@ namespace Content.Client.Voting
                 @new = true;
                 IoCManager.Resolve<IEntitySystemManager>().GetEntitySystem<AudioSystem>()
                     .PlayGlobal("/Audio/Effects/voteding.ogg", Filter.Local(), false);
-                // TODO: It would be better if this used a per-state container, i.e. a container
-                // for the lobby and each HUD layout.
-                SetPopupContainer(_userInterfaceManager.WindowRoot);
+
+                // Refresh
+                var container = _popupContainer;
+                ClearPopupContainer();
+
+                if (container != null)
+                    SetPopupContainer(container);
 
                 // New vote from the server.
                 var vote = new ActiveVote(voteId)
@@ -142,6 +153,7 @@ namespace Content.Client.Voting
                 _votes.Remove(voteId);
                 if (_votePopups.TryGetValue(voteId, out var toRemove))
                 {
+
                     toRemove.Orphan();
                     _votePopups.Remove(voteId);
                 }

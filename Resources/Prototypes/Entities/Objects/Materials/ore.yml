@@ -5,17 +5,17 @@
   description: A piece of unrefined ore.
   components:
   - type: Sprite
-    netsync: false
     sprite: Objects/Materials/ore.rsi
   - type: Item
     sprite: Objects/Materials/ore.rsi
-  - type: ItemStatus
+    size: Normal
   - type: Tag
     tags:
     - Ore
   - type: Fixtures
     fixtures:
-      - shape:
+      fix1:
+        shape:
           !type:PhysShapeCircle
           radius: 0.2
         density: 20
@@ -46,7 +46,8 @@
   - type: Sprite
     state: gold
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       Gold: 500
 
 - type: entity
@@ -68,7 +69,8 @@
   - type: Sprite
     state: iron
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       Steel: 500
 
 - type: entity
@@ -90,7 +92,8 @@
   - type: Sprite
     state: plasma
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       Plasma: 500
 
 - type: entity
@@ -112,7 +115,8 @@
   - type: Sprite
     state: silver
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       Silver: 500
 
 - type: entity
@@ -134,7 +138,8 @@
   - type: Sprite
     state: spacequartz
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       Glass: 500
 
 - type: entity
@@ -156,12 +161,75 @@
   - type: Sprite
     state: uranium
   - type: Material
-    materials:
+  - type: PhysicalComposition
+    materialComposition:
       Uranium: 500
 
 - type: entity
   parent: UraniumOre
   id: UraniumOre1
+  suffix: Single
+  components:
+  - type: Stack
+    count: 1
+
+- type: entity
+  parent: OreBase
+  id: BananiumOre
+  name: bananium ore
+  suffix: Full
+  components:
+  - type: Stack
+    stackType: BananiumOre
+  - type: Sprite
+    state: bananium
+  - type: Material
+  - type: PhysicalComposition
+    materialComposition:
+      Bananium: 500
+
+- type: entity
+  parent: BananiumOre
+  id: BananiumOre1
+  suffix: Single
+  components:
+  - type: Stack
+    count: 1
+
+- type: entity
+  parent: OreBase
+  id: Coal
+  name: coal
+  suffix: Full
+  components:
+  - type: Stack
+    stackType: Coal
+  - type: Sprite
+    state: coal
+  - type: Material
+  - type: Extractable
+    grindableSolutionName: coal
+  - type: SolutionContainerManager
+    solutions:
+      coal:
+        reagents:
+        - ReagentId: Carbon
+          Quantity: 8.4
+        - ReagentId: Ammonia
+          Quantity: 0.8
+        - ReagentId: Hydrogen
+          Quantity: 0.5
+        - ReagentId: Sulfur
+          Quantity: 0.2
+        - ReagentId: Mercury
+          Quantity: 0.1
+  - type: PhysicalComposition
+    materialComposition:
+      Coal: 500
+
+- type: entity
+  parent: Coal
+  id: Coal1
   suffix: Single
   components:
   - type: Stack

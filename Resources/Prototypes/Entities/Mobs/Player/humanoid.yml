@@ -1,19 +1,53 @@
 # Random humanoids
 
+## Death Squad
+
+- type: entity
+  id: RandomHumanoidSpawnerDeathSquad
+  name: Death Squad Agent
+  suffix: ERTRole, Death Squad
+  components:
+    - type: Sprite
+      sprite: Clothing/OuterClothing/Hardsuits/deathsquad.rsi
+      state: icon
+    - type: RandomMetadata
+      nameSegments:
+        - NamesFirstMilitaryLeader
+        - NamesLastMilitary
+    - type: RandomHumanoidSpawner
+      settings: DeathSquad
+
+- type: randomHumanoidSettings
+  id: DeathSquad
+  randomizeName: false
+  components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-Death-Squad-name
+      description: ghost-role-information-Death-Squad-description
+    - type: GhostTakeoverAvailable
+    - type: Loadout
+      prototypes: [ DeathSquadGear ]
+    - type: RandomMetadata
+      nameSegments:
+        - NamesFirstMilitaryLeader
+        - NamesLastMilitary
+
+
 ## ERT Leader
 
 - type: entity
   id: RandomHumanoidSpawnerERTLeader
   name: ERT leader
+  suffix: ERTRole, Basic
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertleader
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitaryLeader
-      - names_last
+      - NamesLastMilitary
     - type: RandomHumanoidSpawner
       settings: ERTLeader
 
@@ -21,24 +55,28 @@
   id: ERTLeader
   randomizeName: false
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-leader-name
+      description: ghost-role-information-ert-leader-description
+      requirements:
+      - !type:OverallPlaytimeRequirement
+        time: 144000 #SS220 ghostrole-times (40h overall)
     - type: GhostTakeoverAvailable
-      name: ERT Leader
-      description: Lead a team of specialists to resolve the stations issues.
     - type: Loadout
       prototypes: [ ERTLeaderGear ]
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitaryLeader
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
 
 - type: entity
   id: RandomHumanoidSpawnerERTLeaderEVA
   parent: RandomHumanoidSpawnerERTLeader
   name: ERT leader
-  suffix: EVA
+  suffix: ERTRole, Armored EVA
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertleadereva
     - type: RandomHumanoidSpawner
@@ -48,11 +86,33 @@
   id: ERTLeaderEVA
   parent: ERTLeader
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-leader-name
+      description: ghost-role-information-ert-leader-description
     - type: GhostTakeoverAvailable
-      name: ERT Leader
-      description: Lead a team of specialists to resolve the stations issues.
     - type: Loadout
       prototypes: [ ERTLeaderGearEVA ]
+
+- type: entity
+  id: RandomHumanoidSpawnerERTLeaderEVALecter
+  parent: RandomHumanoidSpawnerERTLeaderEVA
+  suffix: ERTRole, Lecter, EVA
+  components:
+    - type: RandomHumanoidSpawner
+      settings: ERTLeaderEVALecter
+
+- type: randomHumanoidSettings
+  id: ERTLeaderEVALecter
+  parent: ERTLeaderEVA
+  components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-leader-name
+      description: ghost-role-information-ert-leader-description
+    - type: GhostTakeoverAvailable
+    - type: Loadout
+      prototypes: [ ERTLeaderGearEVALecter ]
 
 ## ERT Janitor
 
@@ -60,15 +120,15 @@
   id: RandomHumanoidSpawnerERTJanitor
   parent: RandomHumanoidSpawnerERTLeader
   name: ERT janitor
+  suffix: ERTRole, Basic
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertjanitor
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: RandomHumanoidSpawner
       settings: ERTJanitor
 
@@ -76,13 +136,18 @@
   id: ERTJanitor
   parent: ERTLeader
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-janitor-name
+      description: ghost-role-information-ert-janitor-description
+      requirements:
+      - !type:OverallPlaytimeRequirement
+        time: 144000 #SS220 ghostrole-times (40h overall)
     - type: GhostTakeoverAvailable
-      name: ERT Janitor
-      description: Assist with custodial efforts to resolve the stations issues.
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: Loadout
       prototypes: [ ERTJanitorGear ]
 
@@ -90,10 +155,9 @@
   id: RandomHumanoidSpawnerERTJanitorEVA
   parent: RandomHumanoidSpawnerERTJanitor
   name: ERT janitor
-  suffix: EVA
+  suffix: ERTRole, Enviro EVA
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertjanitoreva
     - type: RandomHumanoidSpawner
@@ -103,9 +167,11 @@
   id: ERTJanitorEVA
   parent: ERTJanitor
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-janitor-name
+      description: ghost-role-information-ert-janitor-description
     - type: GhostTakeoverAvailable
-      name: ERT Janitor
-      description: Assist with custodial efforts to resolve the stations issues.
     - type: Loadout
       prototypes: [ ERTJanitorGearEVA ]
 
@@ -115,15 +181,15 @@
   id: RandomHumanoidSpawnerERTEngineer
   parent: RandomHumanoidSpawnerERTLeader
   name: ERT engineer
+  suffix: ERTRole, Basic
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertengineer
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: RandomHumanoidSpawner
       settings: ERTEngineer
 
@@ -131,13 +197,18 @@
   id: ERTEngineer
   parent: ERTLeader
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-engineer-name
+      description: ghost-role-information-ert-engineer-description
+      requirements:
+      - !type:OverallPlaytimeRequirement
+        time: 144000 #SS220 ghostrole-times (40h overall)
     - type: GhostTakeoverAvailable
-      name: ERT Engineer
-      description: Assist with engineering efforts to resolve the stations issues.
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: Loadout
       prototypes: [ ERTEngineerGear ]
 
@@ -145,10 +216,9 @@
   id: RandomHumanoidSpawnerERTEngineerEVA
   parent: RandomHumanoidSpawnerERTEngineer
   name: ERT engineer
-  suffix: EVA
+  suffix: ERTRole, Enviro EVA
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertengineereva
     - type: RandomHumanoidSpawner
@@ -158,9 +228,11 @@
   id: ERTEngineerEVA
   parent: ERTEngineer
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-engineer-name
+      description: ghost-role-information-ert-engineer-description
     - type: GhostTakeoverAvailable
-      name: ERT Engineer
-      description: Assist with engineering efforts to resolve the stations issues.
     - type: Loadout
       prototypes: [ ERTEngineerGearEVA ]
 
@@ -170,15 +242,15 @@
   id: RandomHumanoidSpawnerERTSecurity
   parent: RandomHumanoidSpawnerERTLeader
   name: ERT security
+  suffix: ERTRole, Basic
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertsecurity
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: RandomHumanoidSpawner
       settings: ERTSecurity
 
@@ -186,13 +258,18 @@
   id: ERTSecurity
   parent: ERTLeader
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-security-name
+      description: ghost-role-information-ert-security-description
+      requirements:
+      - !type:OverallPlaytimeRequirement
+        time: 144000 #SS220 ghostrole-times (40h overall)
     - type: GhostTakeoverAvailable
-      name: ERT Security
-      description: Assist with security efforts to resolve the stations issues.
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: Loadout
       prototypes: [ ERTSecurityGear ]
 
@@ -200,10 +277,9 @@
   id: RandomHumanoidSpawnerERTSecurityEVA
   parent: RandomHumanoidSpawnerERTSecurity
   name: ERT security
-  suffix: EVA
+  suffix: ERTRole, Armored EVA
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertsecurityeva
     - type: RandomHumanoidSpawner
@@ -213,11 +289,33 @@
   id: ERTSecurityEVA
   parent: ERTSecurity
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-security-name
+      description: ghost-role-information-ert-security-description
     - type: GhostTakeoverAvailable
-      name: ERT Security
-      description: Assist with security efforts to resolve the stations issues.
     - type: Loadout
       prototypes: [ ERTSecurityGearEVA ]
+
+- type: entity
+  id: RandomHumanoidSpawnerERTSecurityEVALecter
+  parent: RandomHumanoidSpawnerERTSecurityEVA
+  suffix: ERTRole, Lecter, EVA
+  components:
+    - type: RandomHumanoidSpawner
+      settings: ERTSecurityEVALecter
+
+- type: randomHumanoidSettings
+  id: ERTSecurityEVALecter
+  parent: ERTSecurityEVA
+  components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-security-name
+      description: ghost-role-information-ert-security-description
+    - type: GhostTakeoverAvailable
+    - type: Loadout
+      prototypes: [ ERTSecurityGearEVALecter ]
 
 ## ERT Medic
 
@@ -225,15 +323,15 @@
   id: RandomHumanoidSpawnerERTMedical
   parent: RandomHumanoidSpawnerERTLeader
   name: ERT medic
+  suffix: ERTRole, Basic
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertmedical
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: RandomHumanoidSpawner
       settings: ERTMedical
 
@@ -241,13 +339,18 @@
   id: ERTMedical
   parent: ERTLeader
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-medical-name
+      description: ghost-role-information-ert-medical-description
+      requirements:
+      - !type:OverallPlaytimeRequirement
+        time: 144000 #SS220 ghostrole-times (40h overall)
     - type: GhostTakeoverAvailable
-      name: ERT Medical
-      description: Assist with medicaling efforts to resolve the stations issues.
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
     - type: Loadout
       prototypes: [ ERTMedicalGear ]
 
@@ -255,10 +358,9 @@
   id: RandomHumanoidSpawnerERTMedicalEVA
   parent: RandomHumanoidSpawnerERTMedical
   name: ERT medic
-  suffix: EVA
+  suffix: ERTRole, Armored EVA
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: ertmedicaleva
     - type: RandomHumanoidSpawner
@@ -268,9 +370,11 @@
   id: ERTMedicalEVA
   parent: ERTMedical
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-ert-medical-name
+      description: ghost-role-information-ert-medical-description
     - type: GhostTakeoverAvailable
-      name: ERT Medical
-      description: Assist with medicaling efforts to resolve the stations issues.
     - type: Loadout
       prototypes: [ ERTMedicalGearEVA ]
 
@@ -279,9 +383,9 @@
 - type: entity
   id: RandomHumanoidSpawnerCBURNUnit
   name: CBURN Agent
+  suffix: ERTRole
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: cburn
     - type: RandomHumanoidSpawner
@@ -290,15 +394,20 @@
 - type: randomHumanoidSettings
   id: CBURNAgent
   components:
+    - type: MindShield
     - type: Loadout
       prototypes: [CBURNGear]
+    - type: GhostRole
+      name: ghost-role-information-cburn-agent-name
+      description: ghost-role-information-cburn-agent-description
+      requirements:
+      - !type:OverallPlaytimeRequirement
+        time: 144000 #SS220 ghostrole-times (40h overall)
     - type: GhostTakeoverAvailable
-      name: CBURN Agent
-      description: A highly trained CentCom agent, capable of dealing with various threats.
     - type: RandomMetadata
       nameSegments:
       - NamesFirstMilitary
-      - names_last
+      - NamesLastERTCallsign # Corvax-Localization
 ## Central Command
 
 - type: entity
@@ -306,7 +415,6 @@
   id: RandomHumanoidSpawnerCentcomOfficial
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: centcom
     - type: RandomHumanoidSpawner
@@ -315,9 +423,11 @@
 - type: randomHumanoidSettings
   id: CentcomOfficial
   components:
+    - type: MindShield
+    - type: GhostRole
+      name: ghost-role-information-centcom-official-name
+      description: ghost-role-information-centcom-official-description
     - type: GhostTakeoverAvailable
-      name: CentCom official
-      description: Inspect the station, jot down performance reviews for heads of staff, bug the Captain.
     - type: Loadout
       prototypes: [ CentcomGear ]
 
@@ -328,11 +438,10 @@
   name: Syndicate Agent
   components:
     - type: Sprite
-      netsync: false
       sprite: Mobs/Species/Human/parts.rsi
       state: full
     - type: RandomMetadata
-      nameSegments: [ names_death_commando ]
+      nameSegments: [ corvax_names_death_commando ] # Corvax-Localization
     - type: RandomHumanoidSpawner
       settings: SyndicateAgent
 
@@ -347,7 +456,6 @@
   name: Nuclear Operative
   components:
     - type: Sprite
-      netsync: false
       sprite: Mobs/Species/Human/parts.rsi
       state: full
     - type: RandomHumanoidSpawner
@@ -364,7 +472,6 @@
   suffix: spawns a cluwne
   components:
     - type: Sprite
-      netsync: false
       sprite: Markers/jobs.rsi
       state: cluwne
     - type: RandomHumanoidSpawner
@@ -374,12 +481,12 @@
       - names_first
       - names_last
 
-
 - type: randomHumanoidSettings
   id: Cluwne
   randomizeName: false
   components:
+    - type: GhostRole
+      name: ghost-role-information-cluwne-name
+      description: ghost-role-information-cluwne-description
     - type: GhostTakeoverAvailable
-      name: Cluwne
-      description: Become a pitiful cluwne, your only goal in life is to find a sweet release from your suffering (usually by being beaten to death). A cluwne is not an antagonist but may defend itself. Crewmembers may murder cluwnes freely.
     - type: Cluwne

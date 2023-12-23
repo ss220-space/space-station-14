@@ -5,30 +5,45 @@ ui-options-tab-graphics = Graphics
 ui-options-tab-controls = Controls
 ui-options-tab-audio = Audio
 ui-options-tab-network = Network
+ui-options-tab-misc = General
 
 ui-options-apply = Apply
 ui-options-reset-all = Reset All
 ui-options-default = Default
 
+# Misc/General menu
+
+ui-options-discordrich = Enable Discord Rich Presence
+ui-options-general-discord = Discord
+ui-options-general-cursor = Cursor
+ui-options-general-speech = Speech
+ui-options-general-storage = Storage
+
 ## Audio menu
 
 ui-options-master-volume = Master Volume:
 ui-options-midi-volume = MIDI (Instrument) Volume:
+ui-options-ambient-music-volume = Ambient music volume:
 ui-options-ambience-volume = Ambience volume:
 ui-options-lobby-volume = Lobby & Round-end volume:
+ui-options-ahelp-volume = AHelp volume:
 ui-options-ambience-max-sounds = Ambience simultaneous sounds:
 ui-options-lobby-music = Lobby & Round-end Music
 ui-options-restart-sounds = Round Restart Sounds
 ui-options-event-music = Event Music
 ui-options-admin-sounds = Play Admin Sounds
-ui-options-station-ambience = Station Ambience
-ui-options-space-ambience = Space Ambience
+ui-options-ahelp-sounds = Play AHelp Sounds
 ui-options-volume-label = Volume
 ui-options-volume-percent = { TOSTRING($volume, "P0") }
 
 ## Graphics menu
 
-ui-options-show-held-item = Show held item next to cursor?
+ui-options-show-held-item = Show held item next to cursor
+ui-options-show-combat-mode-indicators = Show combat mode indicators with cursor
+ui-options-opaque-storage-window = Enable opaque storage window
+ui-options-show-looc-on-head = Show LOOC chat above characters head
+ui-options-fancy-speech = Show names in speech bubbles
+ui-options-fancy-name-background = Add background to speech bubble names
 ui-options-vsync = VSync
 ui-options-fullscreen = Fullscreen
 ui-options-lighting-label = Lighting Quality:
@@ -39,15 +54,39 @@ ui-options-lighting-high = High
 ui-options-scale-label = UI Scale:
 ui-options-scale-auto = Automatic ({ TOSTRING($scale, "P0") })
 ui-options-scale-75 = 75%
+ui-options-scale-80 = 80%
+ui-options-scale-85 = 85%
+ui-options-scale-90 = 90%
+ui-options-scale-95 = 95%
 ui-options-scale-100 = 100%
+ui-options-scale-105 = 105%
+ui-options-scale-110 = 110%
+ui-options-scale-115 = 115%
+ui-options-scale-120 = 120%
 ui-options-scale-125 = 125%
+ui-options-scale-130 = 130%
+ui-options-scale-135 = 135%
+ui-options-scale-140 = 140%
+ui-options-scale-145 = 145%
 ui-options-scale-150 = 150%
+ui-options-scale-155 = 155%
+ui-options-scale-160 = 160%
+ui-options-scale-165 = 165%
+ui-options-scale-170 = 170%
 ui-options-scale-175 = 175%
+ui-options-scale-180 = 180%
+ui-options-scale-185 = 185%
+ui-options-scale-190 = 190%
+ui-options-scale-195 = 195%
 ui-options-scale-200 = 200%
 ui-options-hud-theme = HUD Theme:
 ui-options-hud-theme-default = Default
-ui-options-hud-theme-modernized = Modernized
-ui-options-hud-theme-classic = Classic
+ui-options-hud-theme-plasmafire = Plasmafire
+ui-options-hud-theme-slimecore = Slimecore
+ui-options-hud-theme-clockwork = Clockwork
+ui-options-hud-theme-retro = Retro
+ui-options-hud-theme-minimalist = Minimalist
+ui-options-hud-theme-eris = Eris
 ui-options-vp-stretch = Stretch viewport to fit game window
 ui-options-vp-scale = Fixed viewport scale: x{ $scale }
 ui-options-vp-integer-scaling = Prefer integer scaling (might cause black bars/clipping)
@@ -82,6 +121,7 @@ ui-options-header-dev = Development
 ui-options-header-general = General
 
 ui-options-hotkey-keymap = Use US QWERTY Keys
+ui-options-hotkey-toggle-walk = Toggle Walk
 
 ui-options-function-move-up = Move Up
 ui-options-function-move-left = Move Left
@@ -92,6 +132,9 @@ ui-options-function-walk = Walk
 ui-options-function-camera-rotate-left = Rotate left
 ui-options-function-camera-rotate-right = Rotate right
 ui-options-function-camera-reset = Reset
+ui-options-function-zoom-in = Zoom in
+ui-options-function-zoom-out = Zoom out
+ui-options-function-reset-zoom = Reset zoom
 
 ui-options-function-use = Use
 ui-options-function-use-secondary = Use secondary
@@ -104,9 +147,14 @@ ui-options-function-alt-activate-item-in-world = Alternative activate item in wo
 ui-options-function-drop = Drop item
 ui-options-function-examine-entity = Examine
 ui-options-function-swap-hands = Swap hands
+ui-options-function-move-stored-item = Move stored item
+ui-options-function-rotate-stored-item = Rotate stored item
+ui-options-static-storage-ui = Static storage UI
 
 ui-options-function-smart-equip-backpack = Smart-equip to backpack
 ui-options-function-smart-equip-belt = Smart-equip to belt
+ui-options-function-open-backpack = Open backpack
+ui-options-function-open-belt = Open belt
 ui-options-function-throw-item-in-hand = Throw item
 ui-options-function-try-pull-object = Pull object
 ui-options-function-move-pulled-object = Move pulled object
@@ -115,8 +163,10 @@ ui-options-function-point = Point at location
 
 ui-options-function-focus-chat-input-window = Focus chat
 ui-options-function-focus-local-chat-window = Focus chat (IC)
+ui-options-function-focus-emote = Focus chat (Emote)
 ui-options-function-focus-whisper-chat-window = Focus chat (Whisper)
 ui-options-function-focus-radio-window = Focus chat (Radio)
+ui-options-function-focus-looc-window = Focus chat (LOOC)
 ui-options-function-focus-ooc-window = Focus chat (OOC)
 ui-options-function-focus-admin-chat-window = Focus chat (Admin)
 ui-options-function-focus-dead-chat-window = Focus chat (Dead)
@@ -135,20 +185,27 @@ ui-options-function-open-tile-spawn-window = Open tile spawn menu
 ui-options-function-open-decal-spawn-window = Open decal spawn menu
 ui-options-function-open-admin-menu = Open admin menu
 ui-options-function-open-guidebook = Open guidebook
+ui-options-function-window-close-all = Close all windows
+ui-options-function-window-close-recent = Close recent window
+ui-options-function-show-escape-menu = Toggle game menu
+ui-options-function-escape-context = Close recent window or toggle game menu
 
 ui-options-function-take-screenshot = Take screenshot
 ui-options-function-take-screenshot-no-ui = Take screenshot (without UI)
+ui-options-function-toggle-fullscreen = Toggle fullscreen
 
 ui-options-function-editor-place-object = Place object
 ui-options-function-editor-cancel-place = Cancel placement
 ui-options-function-editor-grid-place = Place in grid
 ui-options-function-editor-line-place = Place line
 ui-options-function-editor-rotate-object = Rotate
+ui-options-function-editor-flip-object = Flip
 ui-options-function-editor-copy-object = Copy
 
 ui-options-function-open-abilities-menu = Open action menu
 ui-options-function-show-debug-console = Open Console
 ui-options-function-show-debug-monitors = Show Debug Monitors
+ui-options-function-inspect-entity = Inspect Entity
 ui-options-function-hide-ui = Hide UI
 
 ui-options-function-hotbar1 = Hotbar slot 1

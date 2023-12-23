@@ -6,14 +6,13 @@
   components:
   - type: Sprite
     sprite: Objects/Weapons/Guns/Cannons/pneumatic_cannon.rsi
-    netsync: false
     layers:
     - state: icon
     - state: tank
       map: [ "tank" ]
       visible: false
   - type: Item
-    size: 50
+    size: Huge
   - type: Clothing
     quickEquip: false
     slots:
@@ -28,11 +27,17 @@
       path: /Audio/Effects/thunk.ogg
     soundEmpty:
       path: /Audio/Items/hiss.ogg
+    clumsyProof: true
   - type: ContainerAmmoProvider
     container: storagebase
   - type: PneumaticCannon
   - type: Storage
-    capacity: 30
+    maxItemSize: Normal
+    grid:
+    - 0,0,3,3
+    blacklist:
+      tags:
+        - CannonRestrict
   - type: Appearance
   - type: ItemMapper
     containerWhitelist: [gas_tank]
@@ -72,10 +77,12 @@
     layers:
     - state: piecannon
   - type: Storage
+    maxItemSize: Normal
+    grid:
+    - 0,0,7,3
     whitelist:
       components:
       - CreamPie
-    capacity: 40
   - type: Gun
     fireRate: 1
     selectedMode: SemiAuto
@@ -86,10 +93,11 @@
       path: /Audio/Effects/thunk.ogg
     soundEmpty:
       path: /Audio/Items/hiss.ogg
+    clumsyProof: true
   - type: ContainerAmmoProvider
     container: storagebase
   - type: Item
-    size: 50
+    size: Normal
   - type: Clothing
     sprite: Objects/Weapons/Guns/Cannons/pie_cannon.rsi
     quickEquip: false
@@ -99,3 +107,40 @@
     containers:
       storagebase: !type:Container
         ents: []
+
+# shoots bullets instead of throwing them, no other changes
+- type: entity
+  parent: WeaponImprovisedPneumaticCannon
+  id: WeaponImprovisedPneumaticCannonGun
+  suffix: Gun
+  components:
+  - type: PneumaticCannon
+    throwItems: false
+
+# doesn't need gas, extra capacity
+- type: entity
+  parent: WeaponImprovisedPneumaticCannonGun
+  id: WeaponImprovisedPneumaticCannonAdmeme
+  suffix: Admeme
+  components:
+  - type: Item
+    size: Ginormous
+  - type: Storage
+    maxItemSize: Ginormous
+    grid:
+    - 0,0,19,10
+    whitelist:
+      tags: [] #dodging a test fail like the IRS
+  - type: PneumaticCannon
+    gasUsage: 0
+    throwItems: false
+  - type: Gun
+    fireRate: 10
+    selectedMode: FullAuto
+    availableModes:
+    - SemiAuto
+    - FullAuto
+    soundGunshot:
+      path: /Audio/Effects/thunk.ogg
+    soundEmpty:
+      path: /Audio/Items/hiss.ogg

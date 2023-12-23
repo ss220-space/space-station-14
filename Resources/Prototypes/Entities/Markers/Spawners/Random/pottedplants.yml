@@ -11,6 +11,13 @@
   - type: RandomSpawner
     offset: 0
     prototypes:
+      # Corvax-Resprite-Start
+      - PottedPlantAlt0
+      - PottedPlantAlt1
+      - PottedPlantAlt2
+      - PottedPlantAlt3
+      - PottedPlantAlt4
+      # Corvax-Resprite-End
       - PottedPlant0
       - PottedPlant1
       - PottedPlant2
@@ -35,6 +42,7 @@
       - PottedPlant22
       - PottedPlant23
       - PottedPlant24
+      - PottedPlant26
     chance: 1
 
 - type: entity
@@ -46,12 +54,12 @@
     layers:
       - state: red
       - sprite: Structures/Furniture/potted_plants.rsi
-        state: plant-26
+        state: plant-27
   - type: RandomSpawner
     offset: 0
     prototypes:
-      - PottedPlant26
       - PottedPlant27
       - PottedPlant28
       - PottedPlant29
+      - PottedPlant30
     chance: 1

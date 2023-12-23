@@ -4,25 +4,26 @@
   description: job-description-qm
   playTimeTracker: JobQuartermaster
   requirements:
-    - !type:RoleTimeRequirement
-      role: JobSalvageSpecialist
-      time: 3600
     - !type:DepartmentTimeRequirement
       department: Cargo
-      time: 18000
+      time: 108000 # SS220-RoleTime
     - !type:OverallPlaytimeRequirement
-      time: 108000
+      time: 180000 # SS220-RoleTime
   weight: 10
   startingGear: QuartermasterGear
-  icon: "QuarterMaster"
-  supervisors: job-supervisors-hop
+  icon: "JobIconQuarterMaster"
+  supervisors: job-supervisors-captain
   access:
   - Cargo
   - Salvage
   - Quartermaster
   - Maintenance
-  - External
   - Command
+  - Brig
+  special:
+  - !type:AddComponentSpecial
+    components:
+      - type: CommandStaff
 
 - type: startingGear
   id: QuartermasterGear
@@ -33,7 +34,8 @@
     shoes: ClothingShoesColorBrown
     id: QuartermasterPDA
     ears: ClothingHeadsetQM
+    belt: BoxFolderClipboard
     pocket1: AppraisalTool
-  innerclothingskirt: ClothingUniformJumpskirtQM
+  innerClothingSkirt: ClothingUniformJumpskirtQM
   satchel: ClothingBackpackSatchelQuartermasterFilled
   duffelbag: ClothingBackpackDuffelQuartermasterFilled

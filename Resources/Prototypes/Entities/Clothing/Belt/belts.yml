@@ -11,9 +11,11 @@
   - type: Clothing
     sprite: Clothing/Belt/utility.rsi
   - type: Storage
+    maxItemSize: Normal
     # TODO: Fill this out more.
     whitelist:
       tags:
+        - Powerdrill
         - Wirecutter
         - Crowbar
         - Screwdriver
@@ -25,17 +27,25 @@
         - CigPack
         - Radio
         - HolofanProjector
+        - Multitool
         - AppraisalTool
+        - JawsOfLife
       components:
-        - AirlockPainter
-        - SignalLinker
+        - SprayPainter
+        - NetworkConfigurator
         - RCD
         - RCDAmmo
         - Welder
         - PowerCell
         - Geiger
+        - TrayScanner
+        - GasAnalyzer
   - type: ItemMapper
     mapLayers:
+      drill:
+        whitelist:
+          tags:
+          - Powerdrill
       cutters_red:
         whitelist:
           tags:
@@ -48,6 +58,10 @@
         whitelist:
           tags:
           - CrowbarRed
+      jaws:
+        whitelist:
+          tags:
+          - JawsOfLife
       screwdriver_nuke:
         whitelist:
           tags:
@@ -58,8 +72,8 @@
           - Wrench
       multitool:
         whitelist:
-          components:
-          - SignalLinker
+          tags:
+            - Multitool
     sprite: Clothing/Belt/belt_overlay.rsi
   - type: Appearance
 
@@ -74,7 +88,8 @@
   - type: Clothing
     sprite: Clothing/Belt/ce.rsi
   - type: Storage
-    capacity: 100
+    grid:
+    - 0,0,9,1
     # TODO: Fill this out more.
     whitelist:
       tags:
@@ -91,10 +106,11 @@
         - CigPack
         - Radio
         - HolofanProjector
+        - Multitool
         - AppraisalTool
       components:
-        - AirlockPainter
-        - SignalLinker
+        - SprayPainter
+        - NetworkConfigurator
         - RCD
         - RCDAmmo
         - Welder
@@ -102,6 +118,8 @@
         - Handcuff
         - PowerCell
         - Geiger
+        - TrayScanner
+        - GasAnalyzer
   - type: ItemMapper
     mapLayers:
       drill:
@@ -130,8 +148,8 @@
           - Screwdriver
       multitool:
         whitelist:
-          components:
-          - SignalLinker
+          tags:
+            - Multitool
       wrench:
         whitelist:
           tags:
@@ -157,6 +175,7 @@
       components:
         - Stunbaton
         - FlashOnTrigger
+        - SmokeOnTrigger
         - Flash
         - Handcuff
         - RangedMagazine
@@ -171,6 +190,10 @@
         whitelist:
           components:
           - Stunbaton
+      tear_gas_grenade:
+        whitelist:
+          components:
+          - SmokeOnTrigger
     sprite: Clothing/Belt/belt_overlay.rsi
   - type: Appearance
 
@@ -232,15 +255,17 @@
         - Bottle
         - Spray
         - Brutepack
+        - Bloodpack
         - Gauze
         - Ointment
         - CigPack
-        - Pill
         - PillCanister
         - Radio
+        - DiscreteHealthAnalyzer
       components:
         - Hypospray
         - Injector
+        - Pill
   - type: ItemMapper
     mapLayers:
       bottle:
@@ -253,8 +278,9 @@
           - Hypospray
       pill:
         whitelist:
-          tags:
+          components:
           - Pill
+          tags:
           - PillCanister
       bottle_spray:
         whitelist:
@@ -296,6 +322,7 @@
         - PlantSampleTaker
         - PlantBGone
         - Bottle
+        - Syringe
         - CigPack
       components:
         - Seed
@@ -346,9 +373,12 @@
         - Taser
         - SecBeltEquip
         - Radio
+        - Sidearm
+        - MagazinePistol
       components:
         - Stunbaton
         - FlashOnTrigger
+        - SmokeOnTrigger
         - Flash
         - Handcuff
   - type: ItemMapper
@@ -361,6 +391,10 @@
         whitelist:
           components:
           - Stunbaton
+      tear_gas_grenade:
+        whitelist:
+          components:
+          - SmokeOnTrigger
     sprite: Clothing/Belt/belt_overlay.rsi
   - type: Appearance
 
@@ -376,7 +410,8 @@
   - type: Clothing
     sprite: Clothing/Belt/sheath.rsi
   - type: Storage
-    capacity: 15
+    grid:
+    - 0,0,1,1
     whitelist:
       tags:
         - CaptainSabre
@@ -391,7 +426,7 @@
 # Belts without visualizers
 
 - type: entity
-  parent: ClothingBeltStorageBase
+  parent: ClothingBeltAmmoProviderBase
   id: ClothingBeltBandolier
   name: bandolier
   description: A bandolier for holding shotgun ammunition.
@@ -401,12 +436,12 @@
   - type: Clothing
     sprite: Clothing/Belt/bandolier.rsi
   - type: Item
-    size: 60
-  - type: Storage
-    capacity: 60
+    size: Huge
+  - type: BallisticAmmoProvider
     whitelist:
       tags:
         - ShellShotgun
+    capacity: 14
 
 - type: entity
   parent: ClothingBeltBase
@@ -419,6 +454,9 @@
   - type: Clothing
     sprite: Clothing/Belt/champion.rsi
     quickEquip: true
+  - type: Tag
+    tags:
+    - Kangaroo
 
 - type: entity
   parent: ClothingBeltStorageBase
@@ -431,7 +469,8 @@
   - type: Clothing
     sprite: Clothing/Belt/holster.rsi
   - type: Storage
-    capacity: 20
+    grid:
+    - 0,0,3,1
 
 - type: entity
   parent: ClothingBeltStorageBase
@@ -444,13 +483,14 @@
   - type: Clothing
     sprite: Clothing/Belt/syndieholster.rsi
   - type: Item
-    size: 60
+    size: Ginormous
   - type: Storage
-    capacity: 60
+    maxItemSize: Huge
+    grid:
+    - 0,0,3,3
     whitelist:
       components:
         - Gun
-        - MeleeWeapon
         - BallisticAmmoProvider
         - CartridgeAmmo
 
@@ -467,6 +507,28 @@
 
 - type: entity
   parent: ClothingBeltStorageBase
+  id: ClothingBeltMercWebbing
+  name: mercenarie webbing
+  description: Ideal for storing everything from ammo to weapons and combat essentials.
+  components:
+  - type: Sprite
+    sprite: Clothing/Belt/mercwebbing.rsi
+  - type: Clothing
+    sprite: Clothing/Belt/mercwebbing.rsi
+
+- type: entity
+  parent: ClothingBeltStorageBase
+  id: ClothingBeltSalvageWebbing
+  name: salvage rig
+  description: Universal unloading system for work in space.
+  components:
+  - type: Sprite
+    sprite: Clothing/Belt/salvagewebbing.rsi
+  - type: Clothing
+    sprite: Clothing/Belt/salvagewebbing.rsi
+
+- type: entity
+  parent: [ClothingBeltStorageBase, ContentsExplosionResistanceBase]
   id: ClothingBeltMilitaryWebbing
   name: chest rig
   description: A set of tactical webbing worn by Syndicate boarding parties.
@@ -475,21 +537,21 @@
     sprite: Clothing/Belt/militarywebbing.rsi
   - type: Clothing
     sprite: Clothing/Belt/militarywebbing.rsi
+  - type: ExplosionResistance
+    damageCoefficient: 0.5
 
 - type: entity
-  parent: ClothingBeltStorageBase
+  parent: ClothingBeltMilitaryWebbing
   id: ClothingBeltMilitaryWebbingMed
   name: medical chest rig
-  description: A set of tactical webbing worn by Gorlax Marauder medic operatives.
+  description: A set of tactical webbing worn by Gorlex Marauder medic operatives.
   components:
   - type: Sprite
     sprite: Clothing/Belt/militarywebbingmed.rsi
   - type: Clothing
     sprite: Clothing/Belt/militarywebbingmed.rsi
   - type: Item
-    size: 60
-  - type: Storage
-    capacity: 60
+    size: Huge
 
 - type: entity
   parent: ClothingBeltBase
@@ -497,6 +559,9 @@
   name: suspenders
   description: For holding your pants up.
   components:
+  - type: Tag
+    tags:
+    - MimeBelt
   - type: Sprite
     sprite: Clothing/Belt/suspenders.rsi
     state: icon
@@ -515,7 +580,8 @@
   - type: Clothing
     sprite: Clothing/Belt/wand.rsi
   - type: Storage
-    capacity: 120
+    grid:
+    - 0,0,15,1
     whitelist:
       tags:
       - WizardWand

@@ -27,7 +27,7 @@ public abstract class SharedHandVirtualItemSystem : EntitySystem
 
     public bool TrySpawnVirtualItemInHand(EntityUid blockingEnt, EntityUid user, [NotNullWhen(true)] out EntityUid? virtualItem)
     {
-        if (!_hands.TryGetEmptyHand(user, out var hand))
+        if (_net.IsClient || !_hands.TryGetEmptyHand(user, out var hand))
         {
             virtualItem = null;
             return false;
@@ -37,6 +37,7 @@ public abstract class SharedHandVirtualItemSystem : EntitySystem
         virtualItem = Spawn("HandVirtualItem", pos);
         var virtualItemComp = EntityManager.GetComponent<HandVirtualItemComponent>(virtualItem.Value);
         virtualItemComp.BlockingEntity = blockingEnt;
+        Dirty(virtualItemComp);
         _hands.DoPickup(user, hand, virtualItem.Value);
         return true;
     }
@@ -48,11 +49,16 @@ public abstract class SharedHandVirtualItemSystem : EntitySystem
     /// </summary>
     public void DeleteInHandsMatching(EntityUid user, EntityUid matching)
     {
+        // Client can't currently predict deleting network entities atm and this might happen due to the
+        // hands leaving PVS for example, in which case we wish to ignore it.
+        if (_net.IsClient)
+            return;
+
         foreach (var hand in _hands.EnumerateHands(user))
         {
             if (TryComp(hand.HeldEntity, out HandVirtualItemComponent? virt) && virt.BlockingEntity == matching)
             {
-                Delete(virt, user);
+                Delete((hand.HeldEntity.Value, virt), user);
             }
         }
     }
@@ -74,13 +80,16 @@ public abstract class SharedHandVirtualItemSystem : EntitySystem
     /// <summary>
     ///     Queues a deletion for a virtual item and notifies the blocking entity and user.
     /// </summary>
-    public void Delete(HandVirtualItemComponent comp, EntityUid user)
+    public void Delete(Entity<HandVirtualItemComponent> item, EntityUid user)
     {
-        var userEv = new VirtualItemDeletedEvent(comp.BlockingEntity, user);
-        RaiseLocalEvent(user, userEv);
-        var targEv = new VirtualItemDeletedEvent(comp.BlockingEntity, user);
-        RaiseLocalEvent(comp.BlockingEntity, targEv);
+        if (_net.IsClient)
+            return;
 
-        QueueDel(comp.Owner);
+        var userEv = new VirtualItemDeletedEvent(item.Comp.BlockingEntity, user);
+        RaiseLocalEvent(user, userEv);
+        var targEv = new VirtualItemDeletedEvent(item.Comp.BlockingEntity, user);
+        RaiseLocalEvent(item.Comp.BlockingEntity, targEv);
+
+        QueueDel(item);
     }
 }

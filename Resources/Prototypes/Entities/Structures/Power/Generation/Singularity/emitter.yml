@@ -12,28 +12,28 @@
     bodyType: Static
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.25,-0.25,0.25,0.25"
-      density: 400
-      mask:
-      - MachineMask
-      layer:
-      - MachineLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.25,-0.25,0.25,0.25"
+        density: 400
+        mask:
+        - MachineMask
+        layer:
+        - MachineLayer
   - type: Transform
     anchored: true
   - type: Sprite
     sprite: Structures/Power/Generation/Singularity/emitter.rsi
-    netsync: false
     layers:
-    - state: emitter2
+    - state: emitter # Corvax-Resprite
     - state: beam
       shader: unshaded
       visible: false
       map: ["enum.EmitterVisualLayers.Lights"]
-    - state: lock
+    - state: unlock # Corvax-Resprite
       shader: unshaded
-      visible: false
+#      visible: false # Corvax-Resprite
       map: ["enum.StorageVisualLayers.Lock"]
   - type: Emitter
   - type: Gun
@@ -57,6 +57,12 @@
     damageModifierSet: StrongMetallic
   - type: Destructible
     thresholds:
+      - trigger:
+          !type:DamageTrigger
+          damage: 400
+        behaviors:
+          - !type:DoActsBehavior
+            acts: [ "Destruction" ]
       - trigger:
           !type:DamageTrigger
           damage: 200
@@ -83,3 +89,13 @@
     board: EmitterCircuitboard
   - type: GuideHelp
     guides: [ Singularity, Power ]
+  - type: DeviceNetwork
+    deviceNetId: Wireless
+    receiveFrequencyId: BasicDevice
+  - type: WirelessNetworkConnection
+    range: 200
+  - type: DeviceLinkSink
+    ports:
+      - On
+      - Off
+      - Toggle

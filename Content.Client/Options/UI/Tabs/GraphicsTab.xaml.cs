@@ -19,12 +19,34 @@ namespace Content.Client.Options.UI.Tabs
         {
             0f,
             0.75f,
+            0.8f,
+            0.85f,
+            0.9f,
+            0.95f,
             1f,
+            1.05f,
+            1.1f,
+            1.15f,
+            1.20f,
             1.25f,
+            1.3f,
+            1.35f,
+            1.4f,
+            1.45f,
             1.50f,
+            1.55f,
+            1.6f,
+            1.65f,
+            1.7f,
             1.75f,
+            1.8f,
+            1.85f,
+            1.9f,
+            1.95f,
             2f
         };
+
+        private Dictionary<string, int> hudThemeIdToIndex = new();
 
         [Dependency] private readonly IConfigurationManager _cfg = default!;
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
@@ -46,16 +68,37 @@ namespace Content.Client.Options.UI.Tabs
             UIScaleOption.AddItem(Loc.GetString("ui-options-scale-auto",
                                                 ("scale", UserInterfaceManager.DefaultUIScale)));
             UIScaleOption.AddItem(Loc.GetString("ui-options-scale-75"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-80"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-85"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-90"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-95"));
             UIScaleOption.AddItem(Loc.GetString("ui-options-scale-100"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-105"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-110"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-115"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-120"));
             UIScaleOption.AddItem(Loc.GetString("ui-options-scale-125"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-130"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-135"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-140"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-145"));
             UIScaleOption.AddItem(Loc.GetString("ui-options-scale-150"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-155"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-160"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-165"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-170"));
             UIScaleOption.AddItem(Loc.GetString("ui-options-scale-175"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-180"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-185"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-190"));
+            UIScaleOption.AddItem(Loc.GetString("ui-options-scale-195"));
             UIScaleOption.AddItem(Loc.GetString("ui-options-scale-200"));
             UIScaleOption.OnItemSelected += OnUIScaleChanged;
 
             foreach (var gear in _prototypeManager.EnumeratePrototypes<HudThemePrototype>())
             {
                 HudThemeOption.AddItem(Loc.GetString(gear.Name));
+                hudThemeIdToIndex.Add(gear.ID, HudThemeOption.GetItemId(HudThemeOption.ItemCount - 1));
             }
             HudThemeOption.OnItemSelected += OnHudThemeChanged;
 
@@ -98,7 +141,6 @@ namespace Content.Client.Options.UI.Tabs
                 UpdateApplyButton();
             };
 
-            ShowHeldItemCheckBox.OnToggled += OnCheckBoxToggled;
             IntegerScalingCheckBox.OnToggled += OnCheckBoxToggled;
             ViewportLowResCheckBox.OnToggled += OnCheckBoxToggled;
             ParallaxLowQualityCheckBox.OnToggled += OnCheckBoxToggled;
@@ -108,14 +150,13 @@ namespace Content.Client.Options.UI.Tabs
             FullscreenCheckBox.Pressed = ConfigIsFullscreen;
             LightingPresetOption.SelectId(GetConfigLightingQuality());
             UIScaleOption.SelectId(GetConfigUIScalePreset(ConfigUIScale));
-            HudThemeOption.SelectId(_cfg.GetCVar(CCVars.HudTheme));
+            HudThemeOption.SelectId(hudThemeIdToIndex.GetValueOrDefault(_cfg.GetCVar(CVars.InterfaceTheme), 0));
             ViewportScaleSlider.Value = _cfg.GetCVar(CCVars.ViewportFixedScaleFactor);
             ViewportStretchCheckBox.Pressed = _cfg.GetCVar(CCVars.ViewportStretch);
             IntegerScalingCheckBox.Pressed = _cfg.GetCVar(CCVars.ViewportSnapToleranceMargin) != 0;
             ViewportLowResCheckBox.Pressed = !_cfg.GetCVar(CCVars.ViewportScaleRender);
             ParallaxLowQualityCheckBox.Pressed = _cfg.GetCVar(CCVars.ParallaxLowQuality);
             FpsCounterCheckBox.Pressed = _cfg.GetCVar(CCVars.HudFpsCounterVisible);
-            ShowHeldItemCheckBox.Pressed = _cfg.GetCVar(CCVars.HudHeldItemShow);
             ViewportWidthSlider.Value = _cfg.GetCVar(CCVars.ViewportWidth);
 
             _cfg.OnValueChanged(CCVars.ViewportMinimumWidth, _ => UpdateViewportWidthRange());
@@ -143,9 +184,13 @@ namespace Content.Client.Options.UI.Tabs
         {
             _cfg.SetCVar(CVars.DisplayVSync, VSyncCheckBox.Pressed);
             SetConfigLightingQuality(LightingPresetOption.SelectedId);
-            if (HudThemeOption.SelectedId != _cfg.GetCVar(CCVars.HudTheme)) // Don't unnecessarily redraw the HUD
+
+            foreach (var theme in _prototypeManager.EnumeratePrototypes<HudThemePrototype>())
             {
-                _cfg.SetCVar(CCVars.HudTheme, HudThemeOption.SelectedId);
+                if (hudThemeIdToIndex[theme.ID] != HudThemeOption.SelectedId)
+                    continue;
+                _cfg.SetCVar(CVars.InterfaceTheme, theme.ID);
+                break;
             }
 
             _cfg.SetCVar(CVars.DisplayWindowMode,
@@ -157,7 +202,6 @@ namespace Content.Client.Options.UI.Tabs
                          IntegerScalingCheckBox.Pressed ? CCVars.ViewportSnapToleranceMargin.DefaultValue : 0);
             _cfg.SetCVar(CCVars.ViewportScaleRender, !ViewportLowResCheckBox.Pressed);
             _cfg.SetCVar(CCVars.ParallaxLowQuality, ParallaxLowQualityCheckBox.Pressed);
-            _cfg.SetCVar(CCVars.HudHeldItemShow, ShowHeldItemCheckBox.Pressed);
             _cfg.SetCVar(CCVars.HudFpsCounterVisible, FpsCounterCheckBox.Pressed);
             _cfg.SetCVar(CCVars.ViewportWidth, (int) ViewportWidthSlider.Value);
 
@@ -186,14 +230,13 @@ namespace Content.Client.Options.UI.Tabs
             var isVSyncSame = VSyncCheckBox.Pressed == _cfg.GetCVar(CVars.DisplayVSync);
             var isFullscreenSame = FullscreenCheckBox.Pressed == ConfigIsFullscreen;
             var isLightingQualitySame = LightingPresetOption.SelectedId == GetConfigLightingQuality();
-            var isHudThemeSame = HudThemeOption.SelectedId == _cfg.GetCVar(CCVars.HudTheme);
+            var isHudThemeSame = HudThemeOption.SelectedId == hudThemeIdToIndex.GetValueOrDefault(_cfg.GetCVar(CVars.InterfaceTheme), 0);
             var isUIScaleSame = MathHelper.CloseToPercent(UIScaleOptions[UIScaleOption.SelectedId], ConfigUIScale);
             var isVPStretchSame = ViewportStretchCheckBox.Pressed == _cfg.GetCVar(CCVars.ViewportStretch);
             var isVPScaleSame = (int) ViewportScaleSlider.Value == _cfg.GetCVar(CCVars.ViewportFixedScaleFactor);
             var isIntegerScalingSame = IntegerScalingCheckBox.Pressed == (_cfg.GetCVar(CCVars.ViewportSnapToleranceMargin) != 0);
             var isVPResSame = ViewportLowResCheckBox.Pressed == !_cfg.GetCVar(CCVars.ViewportScaleRender);
             var isPLQSame = ParallaxLowQualityCheckBox.Pressed == _cfg.GetCVar(CCVars.ParallaxLowQuality);
-            var isShowHeldItemSame = ShowHeldItemCheckBox.Pressed == _cfg.GetCVar(CCVars.HudHeldItemShow);
             var isFpsCounterVisibleSame = FpsCounterCheckBox.Pressed == _cfg.GetCVar(CCVars.HudFpsCounterVisible);
             var isWidthSame = (int) ViewportWidthSlider.Value == _cfg.GetCVar(CCVars.ViewportWidth);
             var isLayoutSame = HudLayoutOption.SelectedMetadata is string opt && opt == _cfg.GetCVar(CCVars.UILayout);
@@ -208,7 +251,6 @@ namespace Content.Client.Options.UI.Tabs
                                    isVPResSame &&
                                    isPLQSame &&
                                    isHudThemeSame &&
-                                   isShowHeldItemSame &&
                                    isFpsCounterVisibleSame &&
                                    isWidthSame &&
                                    isLayoutSame;
@@ -216,6 +258,12 @@ namespace Content.Client.Options.UI.Tabs
 
         private bool ConfigIsFullscreen =>
             _cfg.GetCVar(CVars.DisplayWindowMode) == (int) WindowMode.Fullscreen;
+
+        public void UpdateProperties()
+        {
+            FullscreenCheckBox.Pressed = ConfigIsFullscreen;
+        }
+
 
         private float ConfigUIScale => _cfg.GetCVar(CVars.DisplayUIScale);
 

@@ -1,19 +1,24 @@
 using Content.Shared.Actions;
-using Content.Shared.Actions.ActionTypes;
+using Content.Shared.Whitelist;
 using Robust.Shared.Audio;
+using Robust.Shared.Containers;
 using Robust.Shared.GameStates;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization;
+using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
 namespace Content.Shared.VendingMachines
 {
-    [RegisterComponent, NetworkedComponent]
-    public sealed class VendingMachineComponent : Component
+    [RegisterComponent, NetworkedComponent, AutoGenerateComponentState]
+    public sealed partial class VendingMachineComponent : Component
     {
+        public const string ContainerId = "VendingMachine";
+
         /// <summary>
         /// PrototypeID for the vending machine's inventory, see <see cref="VendingMachineInventoryPrototype"/>
         /// </summary>
-        [DataField("pack", customTypeSerializer: typeof(PrototypeIdSerializer<VendingMachineInventoryPrototype>))]
+        [DataField("pack", customTypeSerializer: typeof(PrototypeIdSerializer<VendingMachineInventoryPrototype>), required: true)]
         public string PackPrototypeId = string.Empty;
 
         /// <summary>
@@ -40,12 +45,16 @@ namespace Content.Shared.VendingMachines
         [ViewVariables]
         public Dictionary<string, VendingMachineInventoryEntry> ContrabandInventory = new();
 
+        [DataField("whitelist")]
+        public EntityWhitelist? Whitelist;
+
         public bool Contraband;
 
         public bool Ejecting;
         public bool Denying;
         public bool DispenseOnHitCoolingDown;
 
+        public EntityUid? NextEntityToEject;
         public string? NextItemToEject;
 
         public bool Broken;
@@ -86,7 +95,13 @@ namespace Content.Shared.VendingMachines
         /// </summary>
         [DataField("soundVend")]
         // Grabbed from: https://github.com/discordia-space/CEV-Eris/blob/f702afa271136d093ddeb415423240a2ceb212f0/sound/machines/vending_drop.ogg
-        public SoundSpecifier SoundVend = new SoundPathSpecifier("/Audio/Machines/machine_vend.ogg");
+        public SoundSpecifier SoundVend = new SoundPathSpecifier("/Audio/Machines/machine_vend.ogg")
+        {
+            Params = new AudioParams
+            {
+                Volume = -2f
+            }
+        };
 
         /// <summary>
         ///     Sound that plays when an item can't be ejected
@@ -98,8 +113,13 @@ namespace Content.Shared.VendingMachines
         /// <summary>
         ///     The action available to the player controlling the vending machine
         /// </summary>
-        [DataField("action", customTypeSerializer: typeof(PrototypeIdSerializer<InstantActionPrototype>))]
-        public string? Action = "VendingThrow";
+        [DataField("action", customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))]
+        [AutoNetworkedField]
+        public string? Action = "ActionVendingThrow";
+
+        [DataField("actionEntity")]
+        [AutoNetworkedField]
+        public EntityUid? ActionEntity;
 
         public float NonLimitedEjectForce = 7.5f;
 
@@ -108,6 +128,17 @@ namespace Content.Shared.VendingMachines
         public float EjectAccumulator = 0f;
         public float DenyAccumulator = 0f;
         public float DispenseOnHitAccumulator = 0f;
+
+        /// <summary>
+        ///     While disabled by EMP it randomly ejects items
+        /// </summary>
+        [DataField("nextEmpEject", customTypeSerializer: typeof(TimeOffsetSerializer))]
+        public TimeSpan NextEmpEject = TimeSpan.Zero;
+
+        /// <summary>
+        ///     Container of unique entities stored inside this vending machine.
+        /// </summary>
+        [ViewVariables] public Container Container = default!;
 
         #region Client Visuals
         /// <summary>
@@ -172,11 +203,19 @@ namespace Content.Shared.VendingMachines
         public string ID;
         [ViewVariables(VVAccess.ReadWrite)]
         public uint Amount;
+        [ViewVariables(VVAccess.ReadWrite)]
+        public List<NetEntity> EntityUids = new();
         public VendingMachineInventoryEntry(InventoryType type, string id, uint amount)
         {
             Type = type;
             ID = id;
             Amount = amount;
+        }
+
+        public VendingMachineInventoryEntry(InventoryType type, string id, uint amount, NetEntity firstUid)
+            : this(type, id, amount)
+        {
+            EntityUids = new List<NetEntity> { firstUid };
         }
     }
 
@@ -233,7 +272,7 @@ namespace Content.Shared.VendingMachines
         StatusKey,
     }
 
-    public sealed class VendingMachineSelfDispenseEvent : InstantActionEvent
+    public sealed partial class VendingMachineSelfDispenseEvent : InstantActionEvent
     {
 
     };

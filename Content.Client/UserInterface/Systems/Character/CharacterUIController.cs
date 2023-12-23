@@ -1,4 +1,5 @@
-﻿using Content.Client.CharacterInfo;
+using System.Linq;
+using Content.Client.CharacterInfo;
 using Content.Client.Gameplay;
 using Content.Client.UserInterface.Controls;
 using Content.Client.UserInterface.Systems.Character.Controls;
@@ -6,10 +7,11 @@ using Content.Client.UserInterface.Systems.Character.Windows;
 using Content.Client.UserInterface.Systems.Objectives.Controls;
 using Content.Shared.Input;
 using JetBrains.Annotations;
+using Robust.Client.GameObjects;
+using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controllers;
 using Robust.Client.UserInterface.Controls;
-using Robust.Client.Utility;
 using Robust.Shared.Input.Binding;
 using Robust.Shared.Utility;
 using static Content.Client.CharacterInfo.CharacterInfoSystem;
@@ -20,7 +22,9 @@ namespace Content.Client.UserInterface.Systems.Character;
 [UsedImplicitly]
 public sealed class CharacterUIController : UIController, IOnStateEntered<GameplayState>, IOnStateExited<GameplayState>, IOnSystemChanged<CharacterInfoSystem>
 {
+    [Dependency] private readonly IPlayerManager _player = default!;
     [UISystemDependency] private readonly CharacterInfoSystem _characterInfo = default!;
+    [UISystemDependency] private readonly SpriteSystem _sprite = default!;
 
     private CharacterWindow? _window;
     private MenuButton? CharacterButton => UIManager.GetActiveUIWidgetOrNull<MenuBar.Widgets.GameTopMenuBar>()?.CharacterButton;
@@ -30,9 +34,10 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
         DebugTools.Assert(_window == null);
 
         _window = UIManager.CreateWindow<CharacterWindow>();
+        _window.OnClose += DeactivateButton;
+        _window.OnOpen += ActivateButton;
+
         LayoutContainer.SetAnchorPreset(_window, LayoutContainer.LayoutPreset.CenterTop);
-
-
 
         CommandBinds.Builder
             .Bind(ContentKeyFunctions.OpenCharacterMenu,
@@ -54,13 +59,13 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
     public void OnSystemLoaded(CharacterInfoSystem system)
     {
         system.OnCharacterUpdate += CharacterUpdated;
-        system.OnCharacterDetached += CharacterDetached;
+        _player.LocalPlayerDetached += CharacterDetached;
     }
 
     public void OnSystemUnloaded(CharacterInfoSystem system)
     {
         system.OnCharacterUpdate -= CharacterUpdated;
-        system.OnCharacterDetached -= CharacterDetached;
+        _player.LocalPlayerDetached -= CharacterDetached;
     }
 
     public void UnloadButton()
@@ -81,14 +86,6 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
         }
 
         CharacterButton.OnPressed += CharacterButtonPressed;
-
-        if (_window == null)
-        {
-            return;
-        }
-
-        _window.OnClose += DeactivateButton;
-        _window.OnOpen += ActivateButton;
     }
 
     private void DeactivateButton() => CharacterButton!.Pressed = false;
@@ -101,10 +98,13 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
             return;
         }
 
-        var (job, objectives, briefing, sprite, entityName) = data;
+        var (entity, job, objectives, briefing, entityName) = data;
 
+        _window.SpriteView.SetEntity(entity);
+        _window.NameLabel.Text = entityName;
         _window.SubText.Text = job;
         _window.Objectives.RemoveAllChildren();
+        _window.ObjectivesLabel.Visible = objectives.Any();
 
         foreach (var (groupId, conditions) in objectives)
         {
@@ -123,27 +123,39 @@ public sealed class CharacterUIController : UIController, IOnStateEntered<Gamepl
             foreach (var condition in conditions)
             {
                 var conditionControl = new ObjectiveConditionsControl();
-                conditionControl.ProgressTexture.Texture = condition.SpriteSpecifier.Frame0();
+                conditionControl.ProgressTexture.Texture = _sprite.Frame0(condition.Icon);
                 conditionControl.ProgressTexture.Progress = condition.Progress;
+                var titleMessage = new FormattedMessage();
+                var descriptionMessage = new FormattedMessage();
+                titleMessage.AddText(condition.Title);
+                descriptionMessage.AddText(condition.Description);
 
-                conditionControl.Title.Text = condition.Title;
-                conditionControl.Description.Text = condition.Description;
+                conditionControl.Title.SetMessage(titleMessage);
+                conditionControl.Description.SetMessage(descriptionMessage);
 
                 objectiveControl.AddChild(conditionControl);
             }
 
-            var briefingControl = new ObjectiveBriefingControl();
-            briefingControl.Label.Text = briefing;
-
-            objectiveControl.AddChild(briefingControl);
             _window.Objectives.AddChild(objectiveControl);
         }
 
-        _window.SpriteView.Sprite = sprite;
-        _window.NameLabel.Text = entityName;
+        if (briefing != null)
+        {
+            var briefingControl = new ObjectiveBriefingControl();
+            briefingControl.Label.Text = briefing;
+            _window.Objectives.AddChild(briefingControl);
+        }
+
+        var controls = _characterInfo.GetCharacterInfoControls(entity);
+        foreach (var control in controls)
+        {
+            _window.Objectives.AddChild(control);
+        }
+
+        _window.RolePlaceholder.Visible = briefing == null && !controls.Any() && !objectives.Any();
     }
 
-    private void CharacterDetached()
+    private void CharacterDetached(EntityUid uid)
     {
         CloseWindow();
     }

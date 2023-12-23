@@ -123,7 +123,7 @@ namespace Content.Shared.Atmos
         /// <summary>
         ///     Minimum temperature difference before the gas temperatures are just set to be equal.
         /// </summary>
-        public const float MinimumTemperatureDeltaToConsider = 0.5f;
+        public const float MinimumTemperatureDeltaToConsider = 0.1f;
 
         /// <summary>
         ///     Minimum temperature for starting superconduction.
@@ -179,14 +179,15 @@ namespace Content.Shared.Atmos
         /// <summary>
         ///     Amount of heat released per mole of burnt hydrogen or tritium (hydrogen isotope)
         /// </summary>
-        public const float FireHydrogenEnergyReleased = 560000f;
+        public const float FireHydrogenEnergyReleased = 284e3f; // hydrogen is 284 kJ/mol
         public const float FireMinimumTemperatureToExist = T0C + 100f;
         public const float FireMinimumTemperatureToSpread = T0C + 150f;
         public const float FireSpreadRadiosityScale = 0.85f;
-        public const float FirePlasmaEnergyReleased = 3000000f;
+        public const float FirePlasmaEnergyReleased = 16e3f; // methane is 16 kJ/mol
         public const float FireGrowthRate = 40000f;
 
         public const float SuperSaturationThreshold = 96f;
+        public const float SuperSaturationEnds = SuperSaturationThreshold / 3;
 
         public const float OxygenBurnRateBase = 1.4f;
         public const float PlasmaMinimumBurnTemperature = (100f+T0C);
@@ -197,7 +198,7 @@ namespace Content.Shared.Atmos
         /// <summary>
         ///     This is calculated to help prevent singlecap bombs (Overpowered tritium/oxygen single tank bombs)
         /// </summary>
-        public const float MinimumTritiumOxyburnEnergy = 2000000f;
+        public const float MinimumTritiumOxyburnEnergy = 143000f;
 
         public const float TritiumBurnOxyFactor = 100f;
         public const float TritiumBurnTritFactor = 10f;
@@ -215,7 +216,7 @@ namespace Content.Shared.Atmos
         ///     Remove X mol of nitrogen for each mol of frezon.
         /// </summary>
         public const float FrezonNitrogenCoolRatio = 5;
-        public const float FrezonCoolEnergyReleased = -3000000f;
+        public const float FrezonCoolEnergyReleased = -600e3f;
         public const float FrezonCoolRateModifier = 20f;
 
         public const float FrezonProductionMaxEfficiencyTemperature = 73.15f;
@@ -225,6 +226,14 @@ namespace Content.Shared.Atmos
         /// </summary>
         public const float FrezonProductionNitrogenRatio = 10f;
 
+        /// <summary>
+        ///     1 mol of Tritium is required per X mol of oxygen.
+        /// </summary>
+        public const float FrezonProductionTritRatio = 50.0f;
+
+        /// <summary>
+        ///     1 / X of the tritium is converted into Frezon each tick
+        /// </summary>
         public const float FrezonProductionConversionRate = 50f;
 
         /// <summary>

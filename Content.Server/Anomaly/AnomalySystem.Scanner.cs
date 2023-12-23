@@ -3,7 +3,7 @@ using Content.Shared.Anomaly;
 using Content.Shared.Anomaly.Components;
 using Content.Shared.DoAfter;
 using Content.Shared.Interaction;
-using Robust.Server.GameObjects;
+using Robust.Shared.Player;
 using Robust.Shared.Utility;
 
 namespace Content.Server.Anomaly;
@@ -17,51 +17,53 @@ public sealed partial class AnomalySystem
     {
         SubscribeLocalEvent<AnomalyScannerComponent, BoundUIOpenedEvent>(OnScannerUiOpened);
         SubscribeLocalEvent<AnomalyScannerComponent, AfterInteractEvent>(OnScannerAfterInteract);
-        SubscribeLocalEvent<AnomalyScannerComponent, DoAfterEvent>(OnDoAfter);
+        SubscribeLocalEvent<AnomalyScannerComponent, ScannerDoAfterEvent>(OnDoAfter);
 
-        SubscribeLocalEvent<AnomalyShutdownEvent>(OnScannerAnomalyShutdown);
         SubscribeLocalEvent<AnomalySeverityChangedEvent>(OnScannerAnomalySeverityChanged);
-        SubscribeLocalEvent<AnomalyStabilityChangedEvent>(OnScannerAnomalyStabilityChanged);
         SubscribeLocalEvent<AnomalyHealthChangedEvent>(OnScannerAnomalyHealthChanged);
     }
 
     private void OnScannerAnomalyShutdown(ref AnomalyShutdownEvent args)
     {
-        foreach (var component in EntityQuery<AnomalyScannerComponent>())
+        var query = EntityQueryEnumerator<AnomalyScannerComponent>();
+        while (query.MoveNext(out var uid, out var component))
         {
             if (component.ScannedAnomaly != args.Anomaly)
                 continue;
-            _ui.TryCloseAll(component.Owner, AnomalyScannerUiKey.Key);
+            _ui.TryCloseAll(uid, AnomalyScannerUiKey.Key);
         }
     }
 
     private void OnScannerAnomalySeverityChanged(ref AnomalySeverityChangedEvent args)
     {
-        foreach (var component in EntityQuery<AnomalyScannerComponent>())
+        var query = EntityQueryEnumerator<AnomalyScannerComponent>();
+        while (query.MoveNext(out var uid, out var component))
         {
             if (component.ScannedAnomaly != args.Anomaly)
                 continue;
-            UpdateScannerUi(component.Owner, component);
+            UpdateScannerUi(uid, component);
         }
     }
 
     private void OnScannerAnomalyStabilityChanged(ref AnomalyStabilityChangedEvent args)
     {
-        foreach (var component in EntityQuery<AnomalyScannerComponent>())
+        var query = EntityQueryEnumerator<AnomalyScannerComponent>();
+        while (query.MoveNext(out var uid, out var component))
         {
             if (component.ScannedAnomaly != args.Anomaly)
                 continue;
-            UpdateScannerUi(component.Owner, component);
+            UpdateScannerUi(uid, component);
         }
     }
 
     private void OnScannerAnomalyHealthChanged(ref AnomalyHealthChangedEvent args)
     {
-        foreach (var component in EntityQuery<AnomalyScannerComponent>())
+        var query = EntityQueryEnumerator<AnomalyScannerComponent>();
+        while (query.MoveNext(out var uid, out var component))
         {
             if (component.ScannedAnomaly != args.Anomaly)
                 continue;
-            UpdateScannerUi(component.Owner, component);
+            UpdateScannerUi(uid, component);
         }
     }
 
@@ -74,10 +76,16 @@ public sealed partial class AnomalySystem
     {
         if (args.Target is not { } target)
             return;
+        // BEGIN SS220 removed to be able to scan anything with scanner
+        /*
         if (!HasComp<AnomalyComponent>(target))
             return;
+        */
+        // END SS220 removed to be able to scan anything with scanner
+        if (!args.CanReach)
+            return;
 
-        _doAfter.DoAfter(new DoAfterEventArgs(args.User, component.ScanDoAfterDuration, target:target, used:uid)
+        _doAfter.TryStartDoAfter(new DoAfterArgs(EntityManager, args.User, component.ScanDoAfterDuration, new ScannerDoAfterEvent(), uid, target: target, used: uid)
         {
             DistanceThreshold = 2f
         });
@@ -112,9 +120,10 @@ public sealed partial class AnomalySystem
 
     public void UpdateScannerWithNewAnomaly(EntityUid scanner, EntityUid anomaly, AnomalyScannerComponent? scannerComp = null, AnomalyComponent? anomalyComp = null)
     {
-        if (!Resolve(scanner, ref scannerComp) || !Resolve(anomaly, ref anomalyComp))
+        // BEGIN SS220 change to be able to scan anything with scanner
+        if (!Resolve(scanner, ref scannerComp)/* || !Resolve(anomaly, ref anomalyComp)*/)
             return;
-
+        // END SS220 change to be able to scan anything with scanner
         scannerComp.ScannedAnomaly = anomaly;
         UpdateScannerUi(scanner, scannerComp);
     }
@@ -122,12 +131,18 @@ public sealed partial class AnomalySystem
     public FormattedMessage GetScannerMessage(AnomalyScannerComponent component)
     {
         var msg = new FormattedMessage();
-        if (component.ScannedAnomaly is not { } anomaly || !TryComp<AnomalyComponent>(anomaly, out var anomalyComp))
+        // BEGIN SS220 change to be able to scan anomalies (message on the scanner)
+        if (component.ScannedAnomaly is not { } anomaly)
         {
             msg.AddMarkup(Loc.GetString("anomaly-scanner-no-anomaly"));
             return msg;
         }
-
+        if (!TryComp<AnomalyComponent>(anomaly, out var anomalyComp))
+        {
+            msg.AddMarkup(Loc.GetString("anomaly-scanner-isnt-anomaly"));
+            return msg;
+        }
+        // END SS220 change to be able to scan anomalies (message on the scanner)
         msg.AddMarkup(Loc.GetString("anomaly-scanner-severity-percentage", ("percent", anomalyComp.Severity.ToString("P"))));
         msg.PushNewline();
         string stateLoc;
@@ -140,8 +155,7 @@ public sealed partial class AnomalySystem
         msg.AddMarkup(stateLoc);
         msg.PushNewline();
 
-        var points = GetAnomalyPointValue(anomaly, anomalyComp) / 10 * 10; //round to tens place
-        msg.AddMarkup(Loc.GetString("anomaly-scanner-point-output", ("point", points)));
+        msg.AddMarkup(Loc.GetString("anomaly-scanner-point-output", ("point", GetAnomalyPointValue(anomaly, anomalyComp))));
         msg.PushNewline();
         msg.PushNewline();
 

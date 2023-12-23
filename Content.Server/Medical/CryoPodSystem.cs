@@ -1,23 +1,26 @@
+using Content.Server.Administration.Logs;
 using Content.Server.Atmos;
 using Content.Server.Atmos.EntitySystems;
 using Content.Server.Atmos.Piping.Components;
 using Content.Server.Atmos.Piping.Unary.EntitySystems;
 using Content.Server.Body.Components;
 using Content.Server.Body.Systems;
-using Content.Server.Chemistry.Components.SolutionManager;
-using Content.Server.Chemistry.EntitySystems;
-using Content.Server.Climbing;
-using Content.Server.DoAfter;
 using Content.Server.Medical.Components;
 using Content.Server.NodeContainer;
+using Content.Server.NodeContainer.EntitySystems;
 using Content.Server.NodeContainer.NodeGroups;
 using Content.Server.NodeContainer.Nodes;
 using Content.Server.Power.Components;
+using Content.Server.Temperature.Components;
 using Content.Server.UserInterface;
 using Content.Shared.Chemistry;
 using Content.Shared.Chemistry.Components;
+using Content.Shared.Chemistry.Components.SolutionManager;
+using Content.Shared.Chemistry.EntitySystems;
 using Content.Shared.Chemistry.Reagent;
+using Content.Shared.Climbing.Systems;
 using Content.Shared.Containers.ItemSlots;
+using Content.Shared.Database;
 using Content.Shared.DoAfter;
 using Content.Shared.DragDrop;
 using Content.Shared.Emag.Systems;
@@ -26,10 +29,10 @@ using Content.Shared.Interaction;
 using Content.Shared.Medical.Cryogenics;
 using Content.Shared.MedicalScanner;
 using Content.Shared.Tools;
-using Content.Shared.Tools.Components;
 using Content.Shared.Verbs;
 using Robust.Server.GameObjects;
 using Robust.Shared.Timing;
+using SharedToolSystem = Content.Shared.Tools.Systems.SharedToolSystem;
 
 namespace Content.Server.Medical;
 
@@ -42,24 +45,24 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
     [Dependency] private readonly SolutionContainerSystem _solutionContainerSystem = default!;
     [Dependency] private readonly BloodstreamSystem _bloodstreamSystem = default!;
     [Dependency] private readonly UserInterfaceSystem _userInterfaceSystem = default!;
-    [Dependency] private readonly DoAfterSystem _doAfterSystem = default!;
+    [Dependency] private readonly SharedDoAfterSystem _doAfterSystem = default!;
     [Dependency] private readonly UserInterfaceSystem _uiSystem = default!;
     [Dependency] private readonly SharedToolSystem _toolSystem = default!;
     [Dependency] private readonly IGameTiming _gameTiming = default!;
     [Dependency] private readonly MetaDataSystem _metaDataSystem = default!;
     [Dependency] private readonly ReactiveSystem _reactiveSystem = default!;
+    [Dependency] private readonly IAdminLogManager _adminLogger = default!;
+    [Dependency] private readonly NodeContainerSystem _nodeContainer = default!;
 
     public override void Initialize()
     {
         base.Initialize();
 
-        SubscribeLocalEvent<CryoPodComponent, CanDropTargetEvent>(OnCryoPodCanDropOn);
         SubscribeLocalEvent<CryoPodComponent, ComponentInit>(OnComponentInit);
         SubscribeLocalEvent<CryoPodComponent, GetVerbsEvent<AlternativeVerb>>(AddAlternativeVerbs);
         SubscribeLocalEvent<CryoPodComponent, GotEmaggedEvent>(OnEmagged);
-        SubscribeLocalEvent<CryoPodComponent, DoAfterEvent>(OnDoAfter);
+        SubscribeLocalEvent<CryoPodComponent, CryoPodDragFinished>(OnDragFinished);
         SubscribeLocalEvent<CryoPodComponent, CryoPodPryFinished>(OnCryoPodPryFinished);
-        SubscribeLocalEvent<CryoPodComponent, CryoPodPryInterrupted>(OnCryoPodPryInterrupted);
 
         SubscribeLocalEvent<CryoPodComponent, AtmosDeviceUpdateEvent>(OnCryoPodUpdateAtmosphere);
         SubscribeLocalEvent<CryoPodComponent, DragDropTargetEvent>(HandleDragDropOn);
@@ -81,18 +84,20 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
         var itemSlotsQuery = GetEntityQuery<ItemSlotsComponent>();
         var fitsInDispenserQuery = GetEntityQuery<FitsInDispenserComponent>();
         var solutionContainerManagerQuery = GetEntityQuery<SolutionContainerManagerComponent>();
-        foreach (var (_, cryoPod) in EntityQuery<ActiveCryoPodComponent, CryoPodComponent>())
+        var query = EntityQueryEnumerator<ActiveCryoPodComponent, CryoPodComponent>();
+
+        while (query.MoveNext(out var uid, out _, out var cryoPod))
         {
-            metaDataQuery.TryGetComponent(cryoPod.Owner, out var metaDataComponent);
-            if (curTime < cryoPod.NextInjectionTime + _metaDataSystem.GetPauseTime(cryoPod.Owner, metaDataComponent))
+            metaDataQuery.TryGetComponent(uid, out var metaDataComponent);
+            if (curTime < cryoPod.NextInjectionTime + _metaDataSystem.GetPauseTime(uid, metaDataComponent))
                 continue;
             cryoPod.NextInjectionTime = curTime + TimeSpan.FromSeconds(cryoPod.BeakerTransferTime);
 
-            if (!itemSlotsQuery.TryGetComponent(cryoPod.Owner, out var itemSlotsComponent))
+            if (!itemSlotsQuery.TryGetComponent(uid, out var itemSlotsComponent))
             {
                 continue;
             }
-            var container = _itemSlotsSystem.GetItemOrNull(cryoPod.Owner, cryoPod.SolutionContainerName, itemSlotsComponent);
+            var container = _itemSlotsSystem.GetItemOrNull(uid, cryoPod.SolutionContainerName, itemSlotsComponent);
             var patient = cryoPod.BodyContainer.ContainedEntity;
             if (container != null
                 && container.Value.Valid
@@ -114,14 +119,15 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
         }
     }
 
-    public override void EjectBody(EntityUid uid, SharedCryoPodComponent? cryoPodComponent)
+    public override EntityUid? EjectBody(EntityUid uid, CryoPodComponent? cryoPodComponent)
     {
         if (!Resolve(uid, ref cryoPodComponent))
-            return;
+            return null;
         if (cryoPodComponent.BodyContainer.ContainedEntity is not {Valid: true} contained)
-            return;
+            return null;
         base.EjectBody(uid, cryoPodComponent);
         _climbSystem.ForciblySetClimbing(contained, uid);
+        return contained;
     }
 
     #region Interaction
@@ -131,25 +137,31 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
         if (cryoPodComponent.BodyContainer.ContainedEntity != null)
             return;
 
-        var doAfterArgs = new DoAfterEventArgs(args.User, cryoPodComponent.EntryDelay, target:args.Dragged, used:uid)
+        var doAfterArgs = new DoAfterArgs(EntityManager, args.User, cryoPodComponent.EntryDelay, new CryoPodDragFinished(), uid, target: args.Dragged, used: uid)
         {
             BreakOnDamage = true,
-            BreakOnStun = true,
             BreakOnTargetMove = true,
             BreakOnUserMove = true,
             NeedHand = false,
         };
-        _doAfterSystem.DoAfter(doAfterArgs);
+        _doAfterSystem.TryStartDoAfter(doAfterArgs);
         args.Handled = true;
     }
 
-    private void OnDoAfter(EntityUid uid, CryoPodComponent component, DoAfterEvent args)
+    private void OnDragFinished(EntityUid uid, CryoPodComponent component, CryoPodDragFinished args)
     {
         if (args.Cancelled || args.Handled || args.Args.Target == null)
             return;
 
-        InsertBody(uid, args.Args.Target.Value, component);
+        if (InsertBody(uid, args.Args.Target.Value, component))
+        {
+            if (!TryComp(uid, out CryoPodAirComponent? cryoPodAir))
+                _adminLogger.Add(LogType.Action, LogImpact.Medium,
+                    $"{ToPrettyString(args.User)} inserted {ToPrettyString(args.Args.Target.Value)} into {ToPrettyString(uid)}");
 
+            _adminLogger.Add(LogType.Action, LogImpact.Medium,
+                $"{ToPrettyString(args.User)} inserted {ToPrettyString(args.Args.Target.Value)} into {ToPrettyString(uid)} which contains gas: {cryoPodAir!.Air.ToPrettyString():gasMix}");
+        }
         args.Handled = true;
     }
 
@@ -169,10 +181,14 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
 
     private void OnActivateUI(EntityUid uid, CryoPodComponent cryoPodComponent, AfterActivatableUIOpenEvent args)
     {
+        TryComp<TemperatureComponent>(cryoPodComponent.BodyContainer.ContainedEntity, out var temp);
+        TryComp<BloodstreamComponent>(cryoPodComponent.BodyContainer.ContainedEntity, out var bloodstream);
+
         _userInterfaceSystem.TrySendUiMessage(
             uid,
-            SharedHealthAnalyzerComponent.HealthAnalyzerUiKey.Key,
-            new SharedHealthAnalyzerComponent.HealthAnalyzerScannedUserMessage(cryoPodComponent.BodyContainer.ContainedEntity));
+            HealthAnalyzerUiKey.Key,
+            new HealthAnalyzerScannedUserMessage(GetNetEntity(cryoPodComponent.BodyContainer.ContainedEntity),
+            temp?.CurrentTemperature ?? 0, bloodstream != null ? bloodstream.BloodSolution.FillFraction : 0));
     }
 
     private void OnInteractUsing(EntityUid uid, CryoPodComponent cryoPodComponent, InteractUsingEvent args)
@@ -180,18 +196,7 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
         if (args.Handled || !cryoPodComponent.Locked || cryoPodComponent.BodyContainer.ContainedEntity == null)
             return;
 
-        if (TryComp(args.Used, out ToolComponent? tool)
-            && tool.Qualities.Contains("Prying")) // Why aren't those enums?
-        {
-            if (cryoPodComponent.IsPrying)
-                return;
-            cryoPodComponent.IsPrying = true;
-
-            var toolEvData = new ToolEventData(new CryoPodPryFinished(), targetEntity:uid);
-            _toolSystem.UseTool(args.Used, args.User, uid, cryoPodComponent.PryDelay, new [] {"Prying"}, toolEvData);
-
-            args.Handled = true;
-        }
+        args.Handled = _toolSystem.UseTool(args.Used, args.User, uid, cryoPodComponent.PryDelay, "Prying", new CryoPodPryFinished());
     }
 
     private void OnExamined(EntityUid uid, CryoPodComponent component, ExaminedEvent args)
@@ -222,7 +227,7 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
         else
         {
             RemComp<ActiveCryoPodComponent>(uid);
-            _uiSystem.TryCloseAll(uid, SharedHealthAnalyzerComponent.HealthAnalyzerUiKey.Key);
+            _uiSystem.TryCloseAll(uid, HealthAnalyzerUiKey.Key);
         }
         UpdateAppearance(uid, component);
     }
@@ -236,23 +241,30 @@ public sealed partial class CryoPodSystem: SharedCryoPodSystem
         if (!TryComp(uid, out NodeContainerComponent? nodeContainer))
             return;
 
-        if (!nodeContainer.TryGetNode(cryoPod.PortName, out PortablePipeNode? portNode))
+        if (!_nodeContainer.TryGetNode(nodeContainer, cryoPod.PortName, out PortablePipeNode? portNode))
             return;
-        _atmosphereSystem.React(cryoPod.Air, portNode);
+
+        if (!TryComp(uid, out CryoPodAirComponent? cryoPodAir))
+            return;
+
+        _atmosphereSystem.React(cryoPodAir.Air, portNode);
 
         if (portNode.NodeGroup is PipeNet {NodeCount: > 1} net)
         {
-            _gasCanisterSystem.MixContainerWithPipeNet(cryoPod.Air, net.Air);
+            _gasCanisterSystem.MixContainerWithPipeNet(cryoPodAir.Air, net.Air);
         }
     }
 
     private void OnGasAnalyzed(EntityUid uid, CryoPodComponent component, GasAnalyzerScanEvent args)
     {
-        var gasMixDict = new Dictionary<string, GasMixture?> { { Name(uid), component.Air } };
+        if (!TryComp(uid, out CryoPodAirComponent? cryoPodAir))
+            return;
+
+        var gasMixDict = new Dictionary<string, GasMixture?> { { Name(uid), cryoPodAir.Air } };
         // If it's connected to a port, include the port side
         if (TryComp(uid, out NodeContainerComponent? nodeContainer))
         {
-            if(nodeContainer.TryGetNode(component.PortName, out PipeNode? port))
+            if (_nodeContainer.TryGetNode(nodeContainer, component.PortName, out PipeNode? port))
                 gasMixDict.Add(component.PortName, port.Air);
         }
         args.GasMixtures = gasMixDict;

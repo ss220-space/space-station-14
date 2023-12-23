@@ -46,7 +46,7 @@ namespace Content.Server.Construction
             //TODO VERBS add more construction verbs? Until then, removing construction category
             verb.Text = Loc.GetString("deconstructible-verb-begin-deconstruct");
             verb.Icon = new SpriteSpecifier.Texture(
-                new ResourcePath("/Textures/Interface/hammer_scaled.svg.192dpi.png"));
+                new ("/Textures/Interface/hammer_scaled.svg.192dpi.png"));
 
             verb.Act = () =>
             {
@@ -69,9 +69,16 @@ namespace Content.Server.Construction
         {
             if (GetTargetNode(uid, component) is {} target)
             {
-                args.PushMarkup(Loc.GetString(
-                    "construction-component-to-create-header",
-                    ("targetName", target.Name)) + "\n");
+                if (target.Name == component.DeconstructionNode)
+                {
+                    args.PushMarkup(Loc.GetString("deconstruction-header-text") + "\n");
+                }
+                else
+                {
+                    args.PushMarkup(Loc.GetString(
+                        "construction-component-to-create-header",
+                        ("targetName", target.Name)) + "\n");
+                }
             }
 
             if (component.EdgeIndex == null && GetTargetEdge(uid, component) is {} targetEdge)

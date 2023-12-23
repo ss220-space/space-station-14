@@ -1,0 +1,69 @@
+- type: emote
+  id: Sneeze
+  category: Vocal
+  chatMessages: [чихает] # Corvax-Localization
+
+- type: emote
+  id: Cough
+  category: Vocal
+  chatMessages: [кашляет] # Corvax-Localization
+  chatTriggers:
+    - cough
+    - coughs
+    # Corvax-Localization-Start
+    - кашель
+    - кашляет
+    # Corvax-Localization-End
+
+- type: emote
+  id: CatMeow
+  category: Vocal
+  chatMessages: [мяукает] # Corvax-Localization
+
+- type: emote
+  id: CatHisses
+  category: Vocal
+  chatMessages: [шипит] # Corvax-Localization
+
+- type: emote
+  id: MonkeyScreeches
+  category: Vocal
+  chatMessages: [визжит] # Corvax-Localization
+
+- type: emote
+  id: RobotBeep
+  category: Vocal
+  chatMessages: [beeps]
+
+- type: emote
+  id: Yawn
+  category: Vocal
+  chatMessages: [зевает] # Corvax-Localization
+  chatTriggers:
+    - yawn
+    - yawns
+    # Corvax-Localization-Start
+    - зевок
+    - зевает
+    # Corvax-Localization-End
+
+- type: emote
+  id: Snore
+  category: Vocal
+  chatMessages: [храпит] # Corvax-Localization
+
+# SS220 emotes begin
+- type: emote
+  id: Gasp
+  category: Vocal
+  chatMessages: [задыхается]
+  chatTriggers:
+    - задыхается
+    - задыхается.
+    - задыхается!
+
+- type: emote
+  id: CritGasp
+  category: Vocal
+  chatMessages: [задыхается]
+# SS220 emotes end

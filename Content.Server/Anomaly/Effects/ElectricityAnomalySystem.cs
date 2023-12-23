@@ -1,4 +1,5 @@
 ﻿using Content.Server.Electrocution;
+using Content.Server.Emp;
 using Content.Server.Lightning;
 using Content.Server.Power.Components;
 using Content.Shared.Anomaly.Components;
@@ -16,6 +17,7 @@ public sealed class ElectricityAnomalySystem : EntitySystem
     [Dependency] private readonly IRobustRandom _random = default!;
     [Dependency] private readonly LightningSystem _lightning = default!;
     [Dependency] private readonly ElectrocutionSystem _electrocution = default!;
+    [Dependency] private readonly EmpSystem _emp = default!;
     [Dependency] private readonly EntityLookupSystem _lookup = default!;
 
     /// <inheritdoc/>
@@ -29,9 +31,8 @@ public sealed class ElectricityAnomalySystem : EntitySystem
     {
         var range = component.MaxElectrocuteRange * args.Stability;
         var xform = Transform(uid);
-        foreach (var comp in _lookup.GetComponentsInRange<MobStateComponent>(xform.MapPosition, range))
+        foreach (var (ent, comp) in _lookup.GetEntitiesInRange<MobStateComponent>(xform.MapPosition, range))
         {
-            var ent = comp.Owner;
             _lightning.ShootLightning(uid, ent);
         }
     }
@@ -46,7 +47,7 @@ public sealed class ElectricityAnomalySystem : EntitySystem
             if (mobQuery.HasComponent(ent))
                 validEnts.Add(ent);
 
-            if (_random.Prob(0.2f) && poweredQuery.HasComponent(ent))
+            if (_random.Prob(0.01f) && poweredQuery.HasComponent(ent))
                 validEnts.Add(ent);
         }
 
@@ -55,19 +56,21 @@ public sealed class ElectricityAnomalySystem : EntitySystem
         {
             _lightning.ShootLightning(uid, ent);
         }
+
+        var empRange = component.MaxElectrocuteRange * 3;
+        _emp.EmpPulse(Transform(uid).MapPosition, empRange, component.EmpEnergyConsumption, component.EmpDisabledDuration);
     }
 
     public override void Update(float frameTime)
     {
         base.Update(frameTime);
 
-        foreach (var (elec, anom, xform) in EntityQuery<ElectricityAnomalyComponent, AnomalyComponent, TransformComponent>())
+        var query = EntityQueryEnumerator<ElectricityAnomalyComponent, AnomalyComponent, TransformComponent>();
+        while (query.MoveNext(out var uid, out var elec, out var anom, out var xform))
         {
             if (_timing.CurTime < elec.NextSecond)
                 continue;
             elec.NextSecond = _timing.CurTime + TimeSpan.FromSeconds(1);
-
-            var owner = xform.Owner;
 
             if (!_random.Prob(elec.PassiveElectrocutionChance * anom.Stability))
                 continue;
@@ -76,11 +79,9 @@ public sealed class ElectricityAnomalySystem : EntitySystem
             var damage = (int) (elec.MaxElectrocuteDamage * anom.Severity);
             var duration = elec.MaxElectrocuteDuration * anom.Severity;
 
-            foreach (var comp in _lookup.GetComponentsInRange<StatusEffectsComponent>(xform.MapPosition, range))
+            foreach (var (ent, comp) in _lookup.GetEntitiesInRange<StatusEffectsComponent>(xform.MapPosition, range))
             {
-                var ent = comp.Owner;
-
-                _electrocution.TryDoElectrocution(ent, owner, damage, duration, true, statusEffects: comp, ignoreInsulation: true);
+                _electrocution.TryDoElectrocution(ent, uid, damage, duration, true, statusEffects: comp, ignoreInsulation: true);
             }
         }
     }

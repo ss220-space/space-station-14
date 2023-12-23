@@ -7,10 +7,10 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Syndicate/telecrystal.rsi
-    netsync: false
     state: telecrystal
   - type: Item
     sprite: Objects/Specific/Syndicate/telecrystal.rsi
+    size: Tiny
   - type: Stack
     count: 20
     stackType: Telecrystal
@@ -58,7 +58,6 @@
     sprite: Objects/Devices/communication.rsi
     layers:
     - state: old-radio
-    netsync: false
   - type: Item
     sprite: Objects/Devices/communication.rsi
     heldPrefix: old-radio
@@ -97,15 +96,28 @@
 - type: entity
   parent: BaseUplinkRadio
   id: BaseUplinkRadio40TC
-  suffix: 40 TC, NukeOps
+  suffix: 50 TC, NukeOps
   components:
   - type: Store
     preset: StorePresetUplink
     balance:
-      Telecrystal: 40
+      Telecrystal: 50
   - type: Tag
     tags:
     - NukeOpsUplink
+
+- type: entity
+  parent: BaseUplinkRadio
+  id: LoneOpsUplinkRadio40TC
+  suffix: 50 TC, LoneOps
+  components:
+  - type: Store
+    preset: StorePresetUplink
+    balance:
+      Telecrystal: 50
+  - type: Tag
+    tags:
+    - LoneOpsUplink
 
 - type: entity
   parent: BaseUplinkRadio

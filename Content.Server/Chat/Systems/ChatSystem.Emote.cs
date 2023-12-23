@@ -1,4 +1,5 @@
 using Content.Shared.Chat.Prototypes;
+using Content.Shared.Emoting;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 
@@ -52,15 +53,21 @@ public partial class ChatSystem
     /// </summary>
     /// <param name="source">The entity that is speaking</param>
     /// <param name="emoteId">The id of emote prototype. Should has valid <see cref="EmotePrototype.ChatMessages"/></param>
-    /// <param name="hideChat">Whether or not this message should appear in the chat window</param>
-    /// <param name="hideGlobalGhostChat">Whether or not this message should appear in the chat window for out-of-range ghosts (which otherwise ignore range restrictions)</param>
+    /// <param name="hideLog">Whether or not this message should appear in the adminlog window</param>
+    /// <param name="range">Conceptual range of transmission, if it shows in the chat window, if it shows to far-away ghosts or ghosts at all...</param>
     /// <param name="nameOverride">The name to use for the speaking entity. Usually this should just be modified via <see cref="TransformSpeakerNameEvent"/>. If this is set, the event will not get raised.</param>
-    public void TryEmoteWithChat(EntityUid source, string emoteId, bool hideChat = false,
-        bool hideGlobalGhostChat = false, string? nameOverride = null)
+    public void TryEmoteWithChat(
+        EntityUid source,
+        string emoteId,
+        ChatTransmitRange range = ChatTransmitRange.Normal,
+        bool hideLog = false,
+        string? nameOverride = null,
+        bool ignoreActionBlocker = false
+        )
     {
         if (!_prototypeManager.TryIndex<EmotePrototype>(emoteId, out var proto))
             return;
-        TryEmoteWithChat(source, proto, hideChat, hideGlobalGhostChat, nameOverride);
+        TryEmoteWithChat(source, proto, range, hideLog: hideLog, nameOverride, ignoreActionBlocker: ignoreActionBlocker);
     }
 
     /// <summary>
@@ -68,39 +75,48 @@ public partial class ChatSystem
     /// </summary>
     /// <param name="source">The entity that is speaking</param>
     /// <param name="emote">The emote prototype. Should has valid <see cref="EmotePrototype.ChatMessages"/></param>
+    /// <param name="hideLog">Whether or not this message should appear in the adminlog window</param>
     /// <param name="hideChat">Whether or not this message should appear in the chat window</param>
-    /// <param name="hideGlobalGhostChat">Whether or not this message should appear in the chat window for out-of-range ghosts (which otherwise ignore range restrictions)</param>
+    /// <param name="range">Conceptual range of transmission, if it shows in the chat window, if it shows to far-away ghosts or ghosts at all...</param>
     /// <param name="nameOverride">The name to use for the speaking entity. Usually this should just be modified via <see cref="TransformSpeakerNameEvent"/>. If this is set, the event will not get raised.</param>
-    public void TryEmoteWithChat(EntityUid source, EmotePrototype emote, bool hideChat = false,
-        bool hideGlobalGhostChat = false, string? nameOverride = null)
+    public void TryEmoteWithChat(
+        EntityUid source,
+        EmotePrototype emote,
+        ChatTransmitRange range = ChatTransmitRange.Normal,
+        bool hideLog = false,
+        string? nameOverride = null,
+        bool ignoreActionBlocker = false
+        )
     {
         // check if proto has valid message for chat
         if (emote.ChatMessages.Count != 0)
         {
-            var action = _random.Pick(emote.ChatMessages);
-            SendEntityEmote(source, action, hideChat, hideGlobalGhostChat, nameOverride, false);
+            // not all emotes are loc'd, but for the ones that are we pass in entity
+            var action = Loc.GetString(_random.Pick(emote.ChatMessages), ("entity", source));
+            SendEntityEmote(source, action, range, nameOverride, hideLog: hideLog, checkEmote: false, ignoreActionBlocker: ignoreActionBlocker);
         }
 
         // do the rest of emote event logic here
-        TryEmoteWithoutChat(source, emote);
+        TryEmoteWithoutChat(source, emote, ignoreActionBlocker);
     }
 
     /// <summary>
     ///     Makes selected entity to emote using <see cref="EmotePrototype"/> without sending any messages to chat.
     /// </summary>
-    public void TryEmoteWithoutChat(EntityUid uid, string emoteId)
+    public void TryEmoteWithoutChat(EntityUid uid, string emoteId, bool ignoreActionBlocker = false)
     {
         if (!_prototypeManager.TryIndex<EmotePrototype>(emoteId, out var proto))
             return;
-        TryEmoteWithoutChat(uid, proto);
+
+        TryEmoteWithoutChat(uid, proto, ignoreActionBlocker);
     }
 
     /// <summary>
     ///     Makes selected entity to emote using <see cref="EmotePrototype"/> without sending any messages to chat.
     /// </summary>
-    public void TryEmoteWithoutChat(EntityUid uid, EmotePrototype proto)
+    public void TryEmoteWithoutChat(EntityUid uid, EmotePrototype proto, bool ignoreActionBlocker = false)
     {
-        if (!_actionBlocker.CanEmote(uid))
+        if (!_actionBlocker.CanEmote(uid) && !ignoreActionBlocker)
             return;
 
         InvokeEmoteEvent(uid, proto);
@@ -139,11 +155,26 @@ public partial class ChatSystem
         return true;
     }
 
-    private void TryEmoteChatInput(EntityUid uid, string textInput)
+    private void TryEmoteChatInput(EntityUid uid, string textInput, out bool consumed)
     {
+        consumed = false;
         var actionLower = textInput.ToLower();
         if (!_wordEmoteDict.TryGetValue(actionLower, out var emote))
             return;
+
+        // SS220 Chat-Emote-Cooldown begin
+        if (TryComp<EmotingComponent>(uid, out var comp))
+        {
+            var currentTime = _gameTiming.CurTime;
+            if (currentTime - comp.LastChatEmoteTime < comp.ChatEmoteCooldown)
+            {
+                consumed = true;
+                return;
+            }
+
+            comp.LastChatEmoteTime = currentTime;
+        }
+        // SS220 Chat-Emote-Cooldown end
 
         InvokeEmoteEvent(uid, emote);
     }

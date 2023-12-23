@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>cmd_deal</FormId>
+  <PrototypeId>PaperNtFormLaw</PrototypeId>
+  <EntityName>форма НТ-КОМ-ОБРЩ</EntityName>
+  <PhotocopierTitle>Обращение</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-КОМ-ОБРЩ[/bold]
+[head=2]Обращение[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД [/italic]
+
+Уполномоченное лицо:
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности (полное наименование должности), прошу рассмотреть (ФИО), в должности (полное наименование должности) моё обращение.
+Содержание обращения:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

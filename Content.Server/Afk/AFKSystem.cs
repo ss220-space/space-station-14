@@ -1,4 +1,4 @@
-using System.Linq;
+using Content.Server.Administration.Managers;
 using Content.Server.Afk.Events;
 using Content.Server.GameTicking;
 using Content.Shared.CCVar;
@@ -20,11 +20,12 @@ public sealed class AFKSystem : EntitySystem
     [Dependency] private readonly IPlayerManager _playerManager = default!;
     [Dependency] private readonly IGameTiming _timing = default!;
     [Dependency] private readonly GameTicker _ticker = default!;
+    [Dependency] private readonly IAdminManager _adminManager = default!;
 
     private float _checkDelay;
     private TimeSpan _checkTime;
 
-    private readonly HashSet<IPlayerSession> _afkPlayers = new();
+    private readonly HashSet<ICommonSession> _afkPlayers = new();
 
     public override void Initialize()
     {
@@ -73,13 +74,16 @@ public sealed class AFKSystem : EntitySystem
 
         _checkTime = _timing.CurTime + TimeSpan.FromSeconds(_checkDelay);
 
-        foreach (var session in Filter.GetAllPlayers())
+        foreach (var pSession in Filter.GetAllPlayers())
         {
-            if (session.Status != SessionStatus.InGame) continue;
-
-            var pSession = (IPlayerSession) session;
+            if (pSession.Status != SessionStatus.InGame) continue;
             var isAfk = _afkManager.IsAfk(pSession);
 
+            if (_afkManager.IsAfkKick(pSession) && !_adminManager.IsAdmin(pSession))
+            {
+                pSession.ConnectedClient.Disconnect(Loc.GetString("kick-afk"), true);
+                continue;
+            }
             if (isAfk && _afkPlayers.Add(pSession))
             {
                 var ev = new AFKEvent(pSession);

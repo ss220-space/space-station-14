@@ -47,6 +47,11 @@ public static class Identity
         if (!ent.TryGetComponent<IdentityComponent>(uid, out var identity))
             return uid;
 
+        // SS220 damageable component test fail fix
+        // чиним хуйню хуйнёй
+        if (identity.IdentityEntitySlot is null)
+            return uid;
+
         return identity.IdentityEntitySlot.ContainedEntity ?? uid;
     }
 
@@ -54,7 +59,7 @@ public static class Identity
     {
         // Would check for uid == viewer here but I think it's better for you to see yourself
         // how everyone else will see you, otherwise people will probably get confused and think they aren't disguised
-        return ent.HasComponent<SharedGhostComponent>(viewer);
+        return ent.HasComponent<GhostComponent>(viewer);
     }
 
 }

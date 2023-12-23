@@ -7,14 +7,29 @@
     contents:
       - id: BoxSurvival
 
-#- type: entity
-#  noSpawn: true
-#  parent: ClothingBackpackSatchelClown
-#  id: ClothingBackpackSatchelClownFilled
-#  components:
-#  - type: StorageFill
-#    contents:
-#      - id: BoxHug
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchel
+  id: ClothingBackpackSatchelTools
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvival
+      - id: Crowbar
+      - id: Wrench
+      - id: Screwdriver
+      - id: Wirecutter
+      - id: Welder
+      - id: Multitool
+
+- type: entity
+  parent: ClothingBackpackSatchelClown
+  id: ClothingBackpackSatchelClownFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxHug
+      - id: RubberStampClown
 
 - type: entity
   noSpawn: true
@@ -24,6 +39,36 @@
   - type: StorageFill
     contents:
       - id: BoxSurvivalSecurity
+      - id: Flash
+      - id: MagazinePistolRubber
+      - id: MagazinePistolRubber
+      - id: FlashlightSeclite
+      - id: DrinkRelaxingPeachCan
+      
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelSecurity
+  id: ClothingBackpackSatchelSecurityFilledDetective
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvivalSecurity
+      - id: Flash
+      - id: Flash
+      - id: ForensicPad
+      - id: ForensicScanner
+      - id: FlashlightSeclite
+      - id: DrinkRelaxingPeachCan
+      - id: ExpensiveLighterDetective #SS220-Zippo
+
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelBrigmedic
+  id: ClothingBackpackSatchelBrigmedicFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvivalBrigmedic
       - id: Flash
 
 - type: entity
@@ -37,6 +82,16 @@
 
 - type: entity
   noSpawn: true
+  parent: ClothingBackpackSatchelMedical
+  id: ClothingBackpackSatchelParamedicFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvivalMedical
+      - id: EmergencyRollerBedSpawnFolded
+
+- type: entity
+  noSpawn: true
   parent: ClothingBackpackSatchelCaptain
   id: ClothingBackpackSatchelCaptainFilled
   components:
@@ -44,11 +99,13 @@
     contents:
       - id: BoxSurvival
       - id: Flash
+      - id: ExpensiveLighterNanotrasen #SS220-Zippo
       #- name: StationCharter
       #- name: TelescopicBaton
+
 - type: entity
   noSpawn: true
-  parent: ClothingBackpackSatchelEngineering
+  parent: ClothingBackpackSatchelCE # Corvax-Resprite
   id: ClothingBackpackSatchelChiefEngineerFilled
   components:
   - type: StorageFill
@@ -86,13 +143,13 @@
   components:
   - type: StorageFill
     contents:
-      - id: BoxSurvival
+      - id: BoxSurvivalMedical
       - id: Flash
       #- id: TelescopicBaton
 
 - type: entity
   noSpawn: true
-  parent: ClothingBackpackSatchel
+  parent: ClothingBackpackSatchelCargo
   id: ClothingBackpackSatchelQuartermasterFilled
   components:
   - type: StorageFill
@@ -108,13 +165,42 @@
   components:
   - type: StorageFill
     contents:
-      - id: BoxSurvival
+      - id: BoxSurvivalSecurity
       - id: Flash
+      - id: FlashlightSeclite
+      - id: MagazinePistolRubber
+      - id: MagazinePistolRubber
+      - id: DrinkRelaxingPeachCan
+      - id: PilotBriefing
+      
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelSecurity
+  id: ClothingBackpackSatchelSecurityPilotFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvivalSecurity
+      - id: Flash
+      - id: MagazinePistolRubber
+      - id: MagazinePistolRubber
+      - id: FlashlightSeclite
+      - id: DrinkRelaxingPeachCan
+      - id: PilotBriefing
 
 - type: entity
   noSpawn: true
   parent: ClothingBackpackSatchelEngineering
   id: ClothingBackpackSatchelEngineeringFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvivalEngineering
+
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelAtmospherics
+  id: ClothingBackpackSatchelAtmosphericsFilled
   components:
   - type: StorageFill
     contents:
@@ -145,7 +231,7 @@
   components:
   - type: StorageFill
     contents:
-      - id: BoxSurvival
+      - id: BoxSurvivalMedical
 
 - type: entity
   noSpawn: true
@@ -186,11 +272,23 @@
   components:
     - type: StorageFill
       contents:
-      - id: BoxSurvival
-      - id: Lighter
-      - id: CigPackBlack
-      - id: BoxForensicPad
-      - id: HandLabeler
+      - id: BoxSurvivalSecurity
+      - id: Flash
+      - id: Flash
+      - id: ForensicPad
+      - id: ForensicScanner
+      - id: FlashlightSeclite
+      - id: DrinkRelaxingPeachCan
+      - id: ExpensiveLighterDetective #SS220-Zippo
+
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelCargo
+  id: ClothingBackpackSatchelCargoFilled
+  components:
+    - type: StorageFill
+      contents:
+        - id: BoxSurvival
 
 - type: entity
   noSpawn: true
@@ -209,3 +307,13 @@
   - type: Tag
     tags:
     - InnateDontDelete
+
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackSatchelMime
+  id: ClothingBackpackSatchelMimeFilled
+  components:
+  - type: StorageFill
+    contents:
+      - id: BoxSurvival
+      - id: RubberStampMime

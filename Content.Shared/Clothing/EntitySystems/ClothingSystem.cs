@@ -14,6 +14,9 @@ public abstract class ClothingSystem : EntitySystem
     [Dependency] private readonly SharedHumanoidAppearanceSystem _humanoidSystem = default!;
     [Dependency] private readonly TagSystem _tagSystem = default!;
 
+    [ValidatePrototypeId<TagPrototype>]
+    private const string HairTag = "HidesHair";
+
     public override void Initialize()
     {
         base.Initialize();
@@ -22,19 +25,20 @@ public abstract class ClothingSystem : EntitySystem
         SubscribeLocalEvent<ClothingComponent, ComponentHandleState>(OnHandleState);
         SubscribeLocalEvent<ClothingComponent, GotEquippedEvent>(OnGotEquipped);
         SubscribeLocalEvent<ClothingComponent, GotUnequippedEvent>(OnGotUnequipped);
+        SubscribeLocalEvent<ClothingComponent, ItemMaskToggledEvent>(OnMaskToggled);
     }
 
     protected virtual void OnGotEquipped(EntityUid uid, ClothingComponent component, GotEquippedEvent args)
     {
         component.InSlot = args.Slot;
-        if (args.Slot == "head" && _tagSystem.HasTag(args.Equipment, "HidesHair"))
+        if (args.Slot == "head" && _tagSystem.HasTag(args.Equipment, HairTag))
             _humanoidSystem.SetLayerVisibility(args.Equipee, HumanoidVisualLayers.Hair, false);
     }
 
     protected virtual void OnGotUnequipped(EntityUid uid, ClothingComponent component, GotUnequippedEvent args)
     {
         component.InSlot = null;
-        if (args.Slot == "head" && _tagSystem.HasTag(args.Equipment, "HidesHair"))
+        if (args.Slot == "head" && _tagSystem.HasTag(args.Equipment, HairTag))
             _humanoidSystem.SetLayerVisibility(args.Equipee, HumanoidVisualLayers.Hair, true);
     }
 
@@ -47,6 +51,12 @@ public abstract class ClothingSystem : EntitySystem
     {
         if (args.Current is ClothingComponentState state)
             SetEquippedPrefix(uid, state.EquippedPrefix, component);
+    }
+
+    private void OnMaskToggled(Entity<ClothingComponent> ent, ref ItemMaskToggledEvent args)
+    {
+        //TODO: sprites for 'pulled down' state. defaults to invisible due to no sprite with this prefix
+        SetEquippedPrefix(ent, args.IsToggled ? "toggled" : null, ent);
     }
 
     #region Public API

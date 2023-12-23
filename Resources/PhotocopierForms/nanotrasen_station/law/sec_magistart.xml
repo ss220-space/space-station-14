@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>sec_magistart</FormId>
+  <PrototypeId>PaperNtFormLaw</PrototypeId>
+  <EntityName>форма НТ-КОМ-ЦК-НСП</EntityName>
+  <PhotocopierTitle>Решение о начале судебного процесса</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-КОМ-ЦК-НСП[/bold]
+[head=2]Решение о начале судебного процесса[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД[/italic]
+
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности (полное наименование должности), сообщаю о начале судебного разбирательства по делу (ФИО) в связи со сложностью и неоднозначностью дела.
+Предъявляемые правонарушения:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

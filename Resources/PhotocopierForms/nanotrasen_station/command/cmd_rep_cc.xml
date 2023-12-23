@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>cmd_rep_cc</FormId>
+  <PrototypeId>PaperNtFormCmd</PrototypeId>
+  <EntityName>форма НТ-ОРС-КОМ</EntityName>
+  <PhotocopierTitle>Отчёт о работе сотрудника</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-ОРС-КОМ[/bold]
+[head=2]Отчёт о работе сотрудника[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД [/italic]
+
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности (полное наименования должности), в ходе исполнения своих обязанностей выполнил положенный объем работ. Прошу принять результат работ Главой отдела (наименование отдела).
+Произведённые работы:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

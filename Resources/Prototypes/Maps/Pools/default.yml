@@ -2,15 +2,18 @@
   id: DefaultMapPool
   maps:
   - Aspid
+  - Atlas
   - Bagel
   - Barratry
   - Box
-  - Cluster
-  - Fland  
-  - Kettle
-  - Marathon
-  - Meta
-  - Moose
-  - Omega
+#  - Cluster
+#  - Core
+#  - Fland
+#  - Gemini
+#  - Marathon
+#  - Meta
+#  - Omega
   - Origin
-  
+  - Saltern
+  - Packed
+  - Reach

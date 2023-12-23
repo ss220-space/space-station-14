@@ -1,4 +1,14 @@
 - type: deviceFrequency
+  id: ShuttleTimer
+  name: device-frequency-prototype-name-shuttle-timer
+  frequency: 2450
+
+- type: deviceFrequency
+  id: ArrivalsShuttleTimer
+  name: device-frequency-prototype-name-arrivals-shuttle-timer
+  frequency: 2451
+
+- type: deviceFrequency
   id: SurveillanceCamera
   name: device-frequency-prototype-name-surveillance-camera
   frequency: 1926 # i only have so many of these, y'know?
@@ -78,7 +88,7 @@
   frequency: 2300
 
 - type: deviceFrequency
-  id: PDA
+  id: Pda
   name: device-frequency-prototype-name-pdas
   frequency: 2202
 
@@ -86,3 +96,18 @@
   id: Fax
   name: device-frequency-prototype-name-fax
   frequency: 2640
+
+- type: deviceFrequency
+  id: BasicDevice
+  name: device-frequency-prototype-name-basic-device
+  frequency: 1280
+
+- type: deviceFrequency
+  id: MessengerClient
+  name: device-frequency-prototype-name-msg-client
+  frequency: 2203
+
+- type: deviceFrequency
+  id: MessengerServer
+  name: device-frequency-prototype-name-msg-server
+  frequency: 2204

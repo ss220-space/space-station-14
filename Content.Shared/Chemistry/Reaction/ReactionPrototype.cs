@@ -11,14 +11,14 @@ namespace Content.Shared.Chemistry.Reaction
     /// Prototype for chemical reaction definitions
     /// </summary>
     [Prototype("reaction")]
-    public sealed class ReactionPrototype : IPrototype, IComparable<ReactionPrototype>
+    public sealed partial class ReactionPrototype : IPrototype, IComparable<ReactionPrototype>
     {
         [ViewVariables]
         [IdDataField]
-        public string ID { get; } = default!;
+        public string ID { get; private set; } = default!;
 
         [DataField("name")]
-        public string Name { get; } = string.Empty;
+        public string Name { get; private set; } = string.Empty;
 
         /// <summary>
         /// Reactants required for the reaction to occur.
@@ -33,6 +33,12 @@ namespace Content.Shared.Chemistry.Reaction
         public float MinimumTemperature = 0.0f;
 
         /// <summary>
+        ///     If true, this reaction will attempt to conserve thermal energy.
+        /// </summary>
+        [DataField("conserveEnergy")]
+        public bool ConserveEnergy = true;
+
+        /// <summary>
         ///     The maximum temperature the reaction can occur at.
         /// </summary>
         [DataField("maxTemp")]
@@ -42,7 +48,7 @@ namespace Content.Shared.Chemistry.Reaction
         ///     The required mixing categories for an entity to mix the solution with for the reaction to occur
         /// </summary>
         [DataField("requiredMixerCategories")]
-        public List<string>? MixingCategories = null;
+        public List<ProtoId<MixingCategoryPrototype>>? MixingCategories;
 
         /// <summary>
         /// Reagents created when the reaction occurs.
@@ -102,7 +108,7 @@ namespace Content.Shared.Chemistry.Reaction
     /// Prototype for chemical reaction reactants.
     /// </summary>
     [DataDefinition]
-    public sealed class ReactantPrototype
+    public sealed partial class ReactantPrototype
     {
         [DataField("amount")]
         private FixedPoint2 _amount = FixedPoint2.New(1);

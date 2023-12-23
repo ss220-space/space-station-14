@@ -1,9 +1,6 @@
-using Content.Server.Mind.Components;
-using Content.Server.Players;
+using Content.Server.Mind;
 using Content.Shared.Administration;
-using Robust.Server.Player;
 using Robust.Shared.Console;
-using Robust.Shared.Utility;
 
 namespace Content.Server.Administration.Commands
 {
@@ -18,7 +15,7 @@ namespace Content.Server.Administration.Commands
 
         public void Execute(IConsoleShell shell, string argStr, string[] args)
         {
-            if (shell.Player is not IPlayerSession player)
+            if (shell.Player is not { } player)
             {
                 shell.WriteLine("shell-server-cannot");
                 return;
@@ -44,17 +41,7 @@ namespace Content.Server.Administration.Commands
                 return;
             }
 
-            if (!_entities.HasComponent<MindComponent>(target))
-            {
-                shell.WriteLine(Loc.GetString("shell-entity-is-not-mob"));
-                return;
-            }
-
-            var mind = player.ContentData()?.Mind;
-
-            DebugTools.AssertNotNull(mind);
-
-            mind!.TransferTo(target);
+            _entities.System<MindSystem>().ControlMob(player.UserId, target);
         }
     }
 }

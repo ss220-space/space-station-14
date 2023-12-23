@@ -1,0 +1,20 @@
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpack
+  id: ClothingBackpackIAAFilled
+  components:
+    - type: StorageFill
+      contents:
+        - id: BoxSurvival
+        - id: Telescopichka
+        - id: ExpensiveLighterNanotrasen #SS220-Zippo
+
+- type: entity
+  noSpawn: true
+  parent: ClothingBackpackMedical
+  id: ClothingBackpackPsychologistFilled
+  components:
+    - type: StorageFill
+      contents:
+        - id: BoxSurvivalMedical
+        - id: RubberStampPsychologist

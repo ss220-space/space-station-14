@@ -1,11 +1,11 @@
 using Content.Server.Administration.Logs;
 using Content.Server.Chat.Systems;
 using Content.Server.Popups;
-using Content.Shared.Actions;
+using Content.Shared.Clothing;
 using Content.Shared.Database;
 using Content.Shared.Inventory.Events;
+using Content.Shared.Popups;
 using Content.Shared.Preferences;
-using Content.Shared.Verbs;
 using Content.Shared.VoiceMask;
 using Robust.Server.GameObjects;
 using Robust.Shared.Player;
@@ -22,10 +22,12 @@ public sealed partial class VoiceMaskSystem : EntitySystem
     {
         SubscribeLocalEvent<VoiceMaskComponent, TransformSpeakerNameEvent>(OnSpeakerNameTransform);
         SubscribeLocalEvent<VoiceMaskComponent, VoiceMaskChangeNameMessage>(OnChangeName);
+        SubscribeLocalEvent<VoiceMaskComponent, WearerMaskToggledEvent>(OnMaskToggled);
         SubscribeLocalEvent<VoiceMaskerComponent, GotEquippedEvent>(OnEquip);
         SubscribeLocalEvent<VoiceMaskerComponent, GotUnequippedEvent>(OnUnequip);
         SubscribeLocalEvent<VoiceMaskSetNameEvent>(OnSetName);
         // SubscribeLocalEvent<VoiceMaskerComponent, GetVerbsEvent<AlternativeVerb>>(GetVerbs);
+        InitializeTTS(); // Corvax-TTS
     }
 
     private void OnSetName(VoiceMaskSetNameEvent ev)
@@ -37,7 +39,7 @@ public sealed partial class VoiceMaskSystem : EntitySystem
     {
         if (message.Name.Length > HumanoidCharacterProfile.MaxNameLength || message.Name.Length <= 0)
         {
-            _popupSystem.PopupCursor(Loc.GetString("voice-mask-popup-failure"), message.Session);
+            _popupSystem.PopupEntity(Loc.GetString("voice-mask-popup-failure"), uid, message.Session, PopupType.SmallCaution);
             return;
         }
 
@@ -47,7 +49,7 @@ public sealed partial class VoiceMaskSystem : EntitySystem
         else
             _adminLogger.Add(LogType.Action, LogImpact.Medium, $"Voice of {ToPrettyString(uid):mask} set: {component.VoiceName}");
 
-        _popupSystem.PopupCursor(Loc.GetString("voice-mask-popup-success"), message.Session);
+        _popupSystem.PopupEntity(Loc.GetString("voice-mask-popup-success"), uid, message.Session);
 
         TrySetLastKnownName(uid, message.Name);
 
@@ -68,14 +70,19 @@ public sealed partial class VoiceMaskSystem : EntitySystem
         }
     }
 
+    private void OnMaskToggled(Entity<VoiceMaskComponent> ent, ref WearerMaskToggledEvent args)
+    {
+        ent.Comp.Enabled = !args.IsToggled;
+    }
+
     private void OpenUI(EntityUid player, ActorComponent? actor = null)
     {
         if (!Resolve(player, ref actor))
-        {
             return;
-        }
+        if (!_uiSystem.TryGetUi(player, VoiceMaskUIKey.Key, out var bui))
+            return;
 
-        _uiSystem.GetUiOrNull(player, VoiceMaskUIKey.Key)?.Open(actor.PlayerSession);
+        _uiSystem.OpenUi(bui, actor.PlayerSession);
         UpdateUI(player);
     }
 
@@ -86,10 +93,7 @@ public sealed partial class VoiceMaskSystem : EntitySystem
             return;
         }
 
-        _uiSystem.GetUiOrNull(owner, VoiceMaskUIKey.Key)?.SetState(new VoiceMaskBuiState(component.VoiceName));
+        if (_uiSystem.TryGetUi(owner, VoiceMaskUIKey.Key, out var bui))
+            _uiSystem.SetUiState(bui, new VoiceMaskBuiState(component.VoiceName, component.VoiceId)); // Corvax-TTS
     }
-}
-
-public sealed class VoiceMaskSetNameEvent : InstantActionEvent
-{
 }

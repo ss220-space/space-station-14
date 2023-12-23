@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using Content.Shared.CCVar;
 using Robust.Shared.Configuration;
 
@@ -11,6 +13,22 @@ public sealed class ChatSanitizationManager : IChatSanitizationManager
 
     private static readonly Dictionary<string, string> SmileyToEmote = new()
     {
+        // SS220 Fard emote :DD
+        { "пук", "chatsan-farts" },
+        // Corvax-Localization-Start
+        { "хд", "chatsan-laughs" },
+        { "о-о", "chatsan-wide-eyed" }, // cyrillic о
+        { "о.о", "chatsan-wide-eyed" }, // cyrillic о
+        { "0_о", "chatsan-wide-eyed" }, // cyrillic о
+        { "о/", "chatsan-waves" }, // cyrillic о
+        { "о7", "chatsan-salutes" }, // cyrillic о
+        { "0_o", "chatsan-wide-eyed" },
+        { "лмао", "chatsan-laughs" },
+        { "рофл", "chatsan-laughs" },
+        { "яхз", "chatsan-shrugs" },
+        { ":0", "chatsan-surprised" },
+        { ":р", "chatsan-stick-out-tongue" }, // cyrillic р
+        // Corvax-Localization-End
         // I could've done this with regex, but felt it wasn't the right idea.
         { ":)", "chatsan-smiles" },
         { ":]", "chatsan-smiles" },
@@ -54,6 +72,7 @@ public sealed class ChatSanitizationManager : IChatSanitizationManager
         { "._.", "chatsan-surprised" },
         { ".-.", "chatsan-confused" },
         { "-_-", "chatsan-unimpressed" },
+        { "smh", "chatsan-unimpressed" },
         { "o/", "chatsan-waves" },
         { "^^/", "chatsan-waves" },
         { ":/", "chatsan-uncertain" },
@@ -66,9 +85,11 @@ public sealed class ChatSanitizationManager : IChatSanitizationManager
         { "lel.", "chatsan-laughs" },
         { "kek", "chatsan-laughs" },
         { "kek.", "chatsan-laughs" },
+        { "rofl", "chatsan-laughs" },
         { "o7", "chatsan-salutes" },
         { ";_;7", "chatsan-tearfully-salutes"},
-        { "idk", "chatsan-shrugs" }
+        { "idk", "chatsan-shrugs" },
+        { "idk.", "chatsan-shrugs" },
     };
 
     private bool _doSanitize;
@@ -80,14 +101,14 @@ public sealed class ChatSanitizationManager : IChatSanitizationManager
 
     public bool TrySanitizeOutSmilies(string input, EntityUid speaker, out string sanitized, [NotNullWhen(true)] out string? emote)
     {
-        if (!_doSanitize)
-        {
-            sanitized = input;
-            emote = null;
-            return false;
-        }
-
         input = input.TrimEnd();
+        sanitized = input;
+        emote = null;
+
+        if (!_doSanitize)
+            return false;
+
+        var emoteSanitized = false;
 
         foreach (var (smiley, replacement) in SmileyToEmote)
         {
@@ -95,12 +116,22 @@ public sealed class ChatSanitizationManager : IChatSanitizationManager
             {
                 sanitized = input.Remove(input.Length - smiley.Length).TrimEnd();
                 emote = Loc.GetString(replacement, ("ent", speaker));
-                return true;
+                emoteSanitized = true;
+                break;
             }
         }
 
-        sanitized = input;
-        emote = null;
-        return false;
+        var ntAllowed = sanitized.Replace("NanoTrasen", string.Empty, StringComparison.OrdinalIgnoreCase);
+        ntAllowed = ntAllowed.Replace("nt", string.Empty, StringComparison.OrdinalIgnoreCase);
+
+        // Remember, no English
+        if (Regex.Matches(ntAllowed, @"[a-zA-Z]").Any())
+        {
+            sanitized = string.Empty;
+            emote = "кашляет";
+            return true;
+        }
+
+        return emoteSanitized;
     }
 }

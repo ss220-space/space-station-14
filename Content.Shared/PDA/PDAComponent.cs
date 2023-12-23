@@ -1,16 +1,16 @@
-using Content.Shared.Access.Components;
-using Content.Shared.Containers.ItemSlots;
 using Robust.Shared.Prototypes;
 using Robust.Shared.GameStates;
+using Content.Shared.Access.Components;
+using Content.Shared.Containers.ItemSlots;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
 namespace Content.Shared.PDA
 {
     [RegisterComponent, NetworkedComponent]
-    public sealed class PDAComponent : Component
+    public sealed partial class PdaComponent : Component
     {
-        public const string PDAIdSlotId = "PDA-id";
-        public const string PDAPenSlotId = "PDA-pen";
+        public const string PdaIdSlotId = "PDA-id";
+        public const string PdaPenSlotId = "PDA-pen";
 
         /// <summary>
         /// The base PDA sprite state, eg. "pda", "pda-clown"
@@ -30,10 +30,12 @@ namespace Content.Shared.PDA
         [DataField("id", customTypeSerializer: typeof(PrototypeIdSerializer<EntityPrototype>))]
         public string? IdCard;
 
-        [ViewVariables] public IdCardComponent? ContainedID;
+        [ViewVariables] public EntityUid? ContainedId;
         [ViewVariables] public bool FlashlightOn;
 
-        [ViewVariables] public string? OwnerName;
+        [ViewVariables(VVAccess.ReadWrite)] public string? OwnerName;
         [ViewVariables] public string? StationName;
+        [ViewVariables] public string? StationAlertLevel;
+        [ViewVariables] public Color StationAlertColor = Color.White;
     }
 }

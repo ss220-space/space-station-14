@@ -13,6 +13,8 @@
     state: icon
   - type: ItemCooldown
   - type: MeleeWeapon
+    wideAnimationRotation: 135
+    swingLeft: true
     damage:
       types:
         Slash: 10
@@ -33,6 +35,7 @@
     state: icon
   - type: ItemCooldown
   - type: MeleeWeapon
+    wideAnimationRotation: 90
     damage:
       types:
         Slash: 7
@@ -49,14 +52,14 @@
   - type: Sprite
     sprite: Objects/Tools/Hydroponics/scythe.rsi
     state: icon
-    netsync: false
   - type: ItemCooldown
   - type: MeleeWeapon
+    wideAnimationRotation: 135
     damage:
       types:
         Slash: 10
   - type: Item
-    size: 20
+    size: Normal
   - type: Clothing
     sprite: Objects/Tools/Hydroponics/scythe.rsi
     slots:
@@ -77,9 +80,10 @@
   - type: Sprite
     sprite: Objects/Tools/Hydroponics/hatchet.rsi
     state: icon
-    netsync: false
   - type: ItemCooldown
   - type: MeleeWeapon
+    wideAnimationRotation: 135
+    swingLeft: true
     damage:
       types:
         Slash: 10
@@ -102,6 +106,7 @@
     state: icon
   - type: ItemCooldown
   - type: MeleeWeapon
+    wideAnimationRotation: 45
     damage:
       types:
         Blunt: 10
@@ -116,16 +121,16 @@
   description: A bag for botanists to easily move their huge harvests.
   components:
   - type: Sprite
-    netsync: false
     sprite: Objects/Specific/Hydroponics/Equipment/plant_bag.rsi
     state: icon
-  - type: Item
   - type: Clothing
     quickEquip: false
     slots:
     - belt
   - type: Storage
-    capacity: 200
+    grid:
+    - 0,0,7,4
+    maxItemSize: Small
     quickInsert: true
     areaInsert: true
     whitelist:

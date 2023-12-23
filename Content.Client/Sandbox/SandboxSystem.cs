@@ -1,11 +1,13 @@
 using Content.Client.Administration.Managers;
+using Content.Client.Movement.Systems;
+using Content.Shared.Ghost;
 using Content.Shared.Sandbox;
 using Robust.Client.Console;
+using Robust.Client.GameObjects;
 using Robust.Client.Placement;
 using Robust.Client.Placement.Modes;
-using Robust.Client.UserInterface;
 using Robust.Shared.Map;
-using Robust.Shared.Players;
+using Robust.Shared.Player;
 
 namespace Content.Client.Sandbox
 {
@@ -15,17 +17,26 @@ namespace Content.Client.Sandbox
         [Dependency] private readonly IClientConsoleHost _consoleHost = default!;
         [Dependency] private readonly IMapManager _map = default!;
         [Dependency] private readonly IPlacementManager _placement = default!;
-        [Dependency] private readonly IUserInterfaceManager _userInterfaceManager = default!;
+        [Dependency] private readonly ContentEyeSystem _contentEye = default!;
 
         private bool _sandboxEnabled;
         public bool SandboxAllowed { get; private set; }
         public event Action? SandboxEnabled;
         public event Action? SandboxDisabled;
 
+        public event Action? LightingToggled;
+        public event Action? FovToggled;
+        public event Action? PlayerAttached;
+
         public override void Initialize()
         {
             _adminManager.AdminStatusUpdated += CheckStatus;
             SubscribeNetworkEvent<MsgSandboxStatus>(OnSandboxStatus);
+
+            //TODO FIXME Закомментил ибо пизда всё ломается
+            //SubscribeLocalEvent<GhostComponent, ToggleLightingActionEvent>(OnToggleLighting);
+            //SubscribeLocalEvent<GhostComponent, ToggleFoVActionEvent>(OnToggleFoV);
+            //SubscribeLocalEvent<GhostComponent, PlayerAttachedEvent>(OnPlayerAttached);
         }
 
         private void CheckStatus()
@@ -60,6 +71,23 @@ namespace Content.Client.Sandbox
             _sandboxEnabled = sandboxEnabled;
             CheckStatus();
         }
+
+        /*
+        private void OnPlayerAttached(EntityUid uid, GhostComponent comp, PlayerAttachedEvent ev)
+        {
+            PlayerAttached?.Invoke();
+        }
+
+        private void OnToggleFoV(EntityUid uid, GhostComponent comp, ToggleFoVActionEvent ev)
+        {
+            FovToggled?.Invoke();
+        }
+
+        private void OnToggleLighting(EntityUid uid, GhostComponent comp, ToggleLightingActionEvent ev)
+        {
+            LightingToggled?.Invoke();
+        }
+        */
 
         public void Respawn()
         {
@@ -108,7 +136,7 @@ namespace Content.Client.Sandbox
             }
 
             // Try copy tile.
-            if (!_map.TryFindGridAt(coords.ToMap(EntityManager), out var grid) || !grid.TryGetTileRef(coords, out var tileRef))
+            if (!_map.TryFindGridAt(coords.ToMap(EntityManager), out _, out var grid) || !grid.TryGetTileRef(coords, out var tileRef))
                 return false;
 
             if (_placement.Eraser)
@@ -132,7 +160,7 @@ namespace Content.Client.Sandbox
 
         public void ToggleFov()
         {
-            _consoleHost.ExecuteCommand("togglefov");
+            _contentEye.RequestToggleFov();
         }
 
         public void ToggleShadows()

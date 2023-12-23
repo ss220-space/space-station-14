@@ -3,30 +3,18 @@ using Robust.Shared.Audio;
 namespace Content.Server.Wires;
 
 [RegisterComponent]
-public sealed class WiresComponent : Component
+public sealed partial class WiresComponent : Component
 {
-    /// <summary>
-    ///     Is the panel open for this entity's wires?
-    /// </summary>
-    [ViewVariables]
-    public bool IsPanelOpen { get; set; }
-
-    /// <summary>
-    ///     Should this entity's wires panel be visible at all?
-    /// </summary>
-    [ViewVariables]
-    public bool IsPanelVisible { get; set; } = true;
-
     /// <summary>
     ///     The name of this entity's internal board.
     /// </summary>
-    [DataField("BoardName")]
-    public string BoardName { get; set; } = "Wires";
+    [DataField]
+    public LocId BoardName { get; set; } = "wires-board-name-default";
 
     /// <summary>
     ///     The layout ID of this entity's wires.
     /// </summary>
-    [DataField("LayoutId", required: true)]
+    [DataField(required: true)]
     public string LayoutId { get; set; } = default!;
 
     /// <summary>
@@ -59,15 +47,8 @@ public sealed class WiresComponent : Component
     ///     If this should follow the layout saved the first time the layout dictated by the
     ///     layout ID is generated, or if a new wire order should be generated every time.
     /// </summary>
-    [DataField("alwaysRandomize")]
-    public bool AlwaysRandomize { get; }
-
-    /// <summary>
-    ///     Marks if maintenance panel being open/closed by someone with a screwdriver.
-    ///     Prevents do after spam.
-    /// </summary>
-    [ViewVariables(VVAccess.ReadWrite)]
-    public bool IsScrewing;
+    [DataField]
+    public bool AlwaysRandomize { get; private set; }
 
     /// <summary>
     ///     Per wire status, keyed by an object.
@@ -83,12 +64,6 @@ public sealed class WiresComponent : Component
     [ViewVariables]
     public Dictionary<object, object> StateData { get; } = new();
 
-    [DataField("pulseSound")]
+    [DataField]
     public SoundSpecifier PulseSound = new SoundPathSpecifier("/Audio/Effects/multitool_pulse.ogg");
-
-    [DataField("screwdriverOpenSound")]
-    public SoundSpecifier ScrewdriverOpenSound = new SoundPathSpecifier("/Audio/Machines/screwdriveropen.ogg");
-
-    [DataField("screwdriverCloseSound")]
-    public SoundSpecifier ScrewdriverCloseSound = new SoundPathSpecifier("/Audio/Machines/screwdriverclose.ogg");
 }

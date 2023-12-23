@@ -10,6 +10,7 @@
 
 - type: gamePreset
   id: Extended
+  disableRandomEvents: true
   alias:
   - extended
   - shittersafari
@@ -30,17 +31,17 @@
   rules:
     - Secret
 
-- type: gamePreset
-  id: Sandbox
-  alias:
-    - sandbox
-  name: sandbox-title
-  description: sandbox-description
-  showInVote: true
-  maxPlayers: 5
-  rules:
-    - Sandbox
-
+#- type: gamePreset
+#  id: Sandbox
+#  alias:
+#    - sandbox
+#  name: sandbox-title
+#  description: sandbox-description
+#  showInVote: true
+#  maxPlayers: 5
+#  rules:
+#    - Sandbox
+#
 - type: gamePreset
   id: Traitor
   alias:
@@ -53,35 +54,17 @@
     - BasicStationEventScheduler
 
 - type: gamePreset
-  id: Suspicion
-  alias:
-    - suspicion
-    - sus
-  name: suspicion-title
-  description: suspicion-description
-  rules:
-    - Suspicion
-
-- type: gamePreset
   id: Deathmatch
   alias:
     - deathmatch
     - dm
   name: death-match-title
   description: death-match-description
+  maxPlayers: 15
+  showInVote: true
+  #supportedMaps: DeathMatchMapPool #SS220 DeathMatch on default maps
   rules:
-    - DeathMatch
-
-- type: gamePreset
-  id: TraitorDeathMatch
-  alias:
-    - traitordm
-    - traitordeathmatch
-  name: traitor-death-match-title
-  description: traitor-death-match-description
-  rules:
-    - TraitorDeathMatch
-    - MaxTimeRestart
+    - DeathMatch31
 
 - type: gamePreset
   id: Nukeops
@@ -94,20 +77,33 @@
     - Nukeops
     - BasicStationEventScheduler
 
+#- type: gamePreset
+#  id: Revolutionary
+#  alias:
+#    - rev
+#    - revs
+#    - revolutionaries
+#  name: rev-title
+#  description: rev-description
+#  showInVote: false
+#  rules:
+#    - Revolutionary
+#    - BasicStationEventScheduler
+
 - type: gamePreset
   id: Zombie
   alias:
-    - zombie
-    - zombies
-    - Zombies
-    - zz14
-    - zomber
+  - zombie
+  - zombies
+  - Zombies
+  - zz14
+  - zomber
   name: zombie-title
   description: zombie-description
   showInVote: false
   rules:
-    - Zombie
-    - BasicStationEventScheduler
+  - Zombie
+  - BasicStationEventScheduler
 
 - type: gamePreset
   id: Pirates

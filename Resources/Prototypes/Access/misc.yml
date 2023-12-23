@@ -1,17 +1,21 @@
-﻿- type: accessGroup
+- type: accessGroup
   id: AllAccess
   tags:
   - EmergencyShuttleRepealAll
   - Captain
+  - Blueshield
   - HeadOfPersonnel
   - ChiefEngineer
   - ChiefMedicalOfficer
+  - Paramedic
   - HeadOfSecurity
   - ResearchDirector
   - Command
   - Security
+  - Detective
   - Armory
   - Brig
+  - Lawyer
   - Engineering
   - Medical
   - Quartermaster

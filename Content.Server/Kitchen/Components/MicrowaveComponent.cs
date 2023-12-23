@@ -1,4 +1,5 @@
 using Content.Shared.Construction.Prototypes;
+using Content.Shared.DeviceLinking;
 using Robust.Shared.Audio;
 using Robust.Shared.Containers;
 using Robust.Shared.Prototypes;
@@ -7,12 +8,12 @@ using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototy
 namespace Content.Server.Kitchen.Components
 {
     [RegisterComponent]
-    public sealed class MicrowaveComponent : Component
+    public sealed partial class MicrowaveComponent : Component
     {
         [DataField("cookTimeMultiplier"), ViewVariables(VVAccess.ReadWrite)]
         public float CookTimeMultiplier = 1;
         [DataField("machinePartCookTimeMultiplier", customTypeSerializer: typeof(PrototypeIdSerializer<MachinePartPrototype>))]
-        public string MachinePartCookTimeMultiplier = "Laser";
+        public string MachinePartCookTimeMultiplier = "Capacitor";
         [DataField("cookTimeScalingConstant")]
         public float CookTimeScalingConstant = 0.5f;
 
@@ -29,7 +30,8 @@ namespace Content.Server.Kitchen.Components
         [DataField("ItemBreakSound")]
         public SoundSpecifier ItemBreakSound = new SoundPathSpecifier("/Audio/Effects/clang.ogg");
 
-        public IPlayingAudioStream? PlayingStream { get; set; }
+        public EntityUid? PlayingStream;
+
         [DataField("loopingSound")]
         public SoundSpecifier LoopingSound = new SoundPathSpecifier("/Audio/Machines/microwave_loop.ogg");
         #endregion
@@ -37,13 +39,23 @@ namespace Content.Server.Kitchen.Components
         [ViewVariables]
         public bool Broken;
 
+        [DataField, ViewVariables(VVAccess.ReadWrite)]
+        public ProtoId<SinkPortPrototype> OnPort = "On";
+
         /// <summary>
         /// This is a fixed offset of 5.
         /// The cook times for all recipes should be divisible by 5,with a minimum of 1 second.
         /// For right now, I don't think any recipe cook time should be greater than 60 seconds.
         /// </summary>
         [DataField("currentCookTimerTime"), ViewVariables(VVAccess.ReadWrite)]
-        public uint CurrentCookTimerTime = 5;
+        public uint CurrentCookTimerTime = 0;
+
+        /// <summary>
+        /// The maximum number of seconds a microwave can be set to.
+        /// This is currently only used for validation and the client does not check this.
+        /// </summary>
+        [DataField("maxCookTime"), ViewVariables(VVAccess.ReadWrite)]
+        public uint MaxCookTime = 30;
 
         /// <summary>
         ///     The max temperature that this microwave can heat objects to.

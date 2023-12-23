@@ -1,0 +1,62 @@
+- type: job
+  id: BlueShield
+  name: job-name-blueshield
+  description: job-description-blueshield
+  playTimeTracker: JobBlueShield
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Security
+      time: 72000 # SS220-RoleTime
+    - !type:DepartmentTimeRequirement
+      department: Medical
+      time: 72000 # SS220-RoleTime
+    - !type:OverallPlaytimeRequirement
+      time: 180000 # SS220-RoleTime
+  startingGear: BlueShieldGear
+  icon: "JobIconBlueShield"
+  supervisors: job-supervisors-centcom
+  canBeAntag: false
+  access:
+  - Command
+  - Bar
+  - Service
+  - Maintenance
+  - Janitor
+  - Theatre
+  - Kitchen
+  - Chapel
+  - Hydroponics
+  - External
+  - Chemistry
+  - Engineering
+  - Research
+  - Detective
+  - Salvage
+  - Security
+  - Brig
+  - Cargo
+  - Atmospherics
+  - Cargo
+  - Medical
+  - Blueshield
+  special:
+  - !type:AddImplantSpecial
+    implants: [ MindShieldImplant ]
+
+- type: startingGear
+  id: BlueShieldGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitBlueShield
+    back: ClothingBackpackFilled
+    shoes: ClothingShoesBootsJack
+    eyes: ClothingEyesGlassesBlueShield
+    head: ClothingHeadHatBeretNavyBlue
+    outerClothing: ClothingOuterArmorBulletproof
+    id: BlueShieldPDA
+    ears: ClothingHeadsetAltCommand
+    pocket1: WeaponAdvancedRevolver
+    pocket2: HandheldCrewMonitor
+    belt: ClothingBeltSecurityFilled
+    gloves: ClothingHandsGlovesCombat
+  satchel: ClothingBackpackSatchelFilled
+  duffelbag: ClothingBackpackDuffelFilled

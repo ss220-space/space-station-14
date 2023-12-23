@@ -60,7 +60,7 @@ public enum LogType
     AtmosVolumeChanged = 56,
     AtmosFilterChanged = 57,
     AtmosRatioChanged = 58,
-    Emitter = 59,
+    FieldGeneration = 59,
     GhostRoleTaken = 60,
     Chat = 61,
     Action = 62,
@@ -86,4 +86,16 @@ public enum LogType
     Teleport = 81,
     EntityDelete = 82,
     Vote = 83,
+    ItemConfigure = 84,
+    DeviceLinking = 85,
+    Tile = 86,
+
+    /// <summary>
+    /// A client has sent too many chat messages recently and is temporarily blocked from sending more.
+    /// </summary>
+    ChatRateLimited = 87,
+    //WarReceiveTC = 87, // SS220 Nukie-Declare-War // TODO: replace log
+    MessengerServer = 88, // SS220 MessengerServer
+    MessengerClientCartridge = 89,  // SS220 MessengerClientCartridge
+    SecutiyRecords, // SS220 Criminal-Records
 }

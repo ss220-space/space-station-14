@@ -1,6 +1,5 @@
 using Content.Client.Atmos.Components;
 using Content.Shared.Atmos;
-using OpenToolkit.Graphics.OpenGL;
 using Robust.Client.GameObjects;
 using Robust.Shared.Map;
 
@@ -11,6 +10,8 @@ namespace Content.Client.Atmos.EntitySystems;
 /// </summary>
 public sealed class FireVisualizerSystem : VisualizerSystem<FireVisualsComponent>
 {
+    [Dependency] private readonly PointLightSystem _lights = default!;
+
     public override void Initialize()
     {
         base.Initialize();
@@ -27,8 +28,13 @@ public sealed class FireVisualizerSystem : VisualizerSystem<FireVisualsComponent
             component.LightEntity = null;
         }
 
-        if (TryComp<SpriteComponent>(uid, out var sprite))
-            sprite.RemoveLayer(FireVisualLayers.Fire);
+        // Need LayerMapTryGet because Init fails if there's no existing sprite / appearancecomp
+        // which means in some setups (most frequently no AppearanceComp) the layer never exists.
+        if (TryComp<SpriteComponent>(uid, out var sprite) &&
+            sprite.LayerMapTryGet(FireVisualLayers.Fire, out var layer))
+        {
+            sprite.RemoveLayer(layer);
+        }
     }
 
     private void OnComponentInit(EntityUid uid, FireVisualsComponent component, ComponentInit args)
@@ -79,11 +85,11 @@ public sealed class FireVisualizerSystem : VisualizerSystem<FireVisualsComponent
         component.LightEntity ??= Spawn(null, new EntityCoordinates(uid, default));
         var light = EnsureComp<PointLightComponent>(component.LightEntity.Value);
 
-        light.Color = component.LightColor;
+        _lights.SetColor(component.LightEntity.Value, component.LightColor, light);
 
         // light needs a minimum radius to be visible at all, hence the + 1.5f
-        light.Radius = Math.Clamp(1.5f + component.LightRadiusPerStack * fireStacks, 0f, component.MaxLightRadius);
-        light.Energy = Math.Clamp(1 + component.LightEnergyPerStack * fireStacks, 0f, component.MaxLightEnergy);
+        _lights.SetRadius(component.LightEntity.Value, Math.Clamp(1.5f + component.LightRadiusPerStack * fireStacks, 0f, component.MaxLightRadius), light);
+        _lights.SetEnergy(component.LightEntity.Value, Math.Clamp(1 + component.LightEnergyPerStack * fireStacks, 0f, component.MaxLightEnergy), light);
 
         // TODO flickering animation? Or just add a noise mask to the light? But that requires an engine PR.
     }

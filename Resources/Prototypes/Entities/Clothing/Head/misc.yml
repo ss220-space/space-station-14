@@ -31,6 +31,7 @@
   - type: Clothing
     sprite: Clothing/Head/Misc/chickenhead.rsi
   - type: IngestionBlocker
+  - type: IdentityBlocker
 
 - type: entity
   parent: ClothingHeadBase
@@ -50,24 +51,40 @@
   parent: ClothingHeadBase
   id: ClothingHeadHatHairflower
   name: hairflower
-  description: A red rose for beautiful ladies.
+  description: A red flower for beautiful ladies.
   components:
   - type: Sprite
     sprite: Clothing/Head/Misc/hairflower.rsi
   - type: Clothing
     sprite: Clothing/Head/Misc/hairflower.rsi
+  - type: Construction
+    graph: hairflower
+    node: hairflower
 
 - type: entity
-  parent: ClothingHeadBase
+  parent: ClothingHeadLightBase
   id: ClothingHeadHatPumpkin
   name: pumpkin hat
   description: A jack o' lantern! Believed to ward off evil spirits.
   components:
-    - type: Sprite
-      sprite: Clothing/Head/Misc/pumpkin.rsi
-    - type: Clothing
-      sprite: Clothing/Head/Misc/pumpkin.rsi
-    - type: IngestionBlocker
+  - type: Sprite
+    sprite: Clothing/Head/Misc/pumpkin.rsi
+  - type: Clothing
+    sprite: Clothing/Head/Misc/pumpkin.rsi
+  - type: IngestionBlocker
+  - type: IdentityBlocker
+  - type: PointLight
+    enabled: false
+    radius: 3
+    energy: 1
+    mask: /Textures/Effects/LightMasks/cone.png
+    autoRot: true
+    color: "#cc6600"
+    netsync: false
+  - type: ItemSlots
+    slots:
+      cell_slot:
+        name: power-cell-slot-component-slot-name-default
 
 - type: entity
   parent: ClothingHeadBase
@@ -91,6 +108,7 @@
   - type: Clothing
     sprite: Clothing/Head/Misc/richard.rsi
   - type: IngestionBlocker
+  - type: IdentityBlocker
 
 - type: entity
   parent: ClothingHeadBase
@@ -103,6 +121,7 @@
   - type: Clothing
     sprite: Clothing/Head/Misc/skubhead.rsi
   - type: IngestionBlocker
+  - type: IdentityBlocker
 
 - type: entity
   parent: ClothingHeadBase
@@ -114,6 +133,10 @@
     sprite: Clothing/Head/Misc/shrine-maidens-wig.rsi
   - type: Clothing
     sprite: Clothing/Head/Misc/shrine-maidens-wig.rsi
+  - type: Tag
+    tags:
+    - HamsterWearable
+    - WhitelistChameleon
 
 - type: entity
   parent: ClothingHeadBase
@@ -125,6 +148,9 @@
     sprite: Clothing/Head/Misc/cone.rsi
   - type: Clothing
     sprite: Clothing/Head/Misc/cone.rsi
+  - type: PhysicalComposition #you can't just pass up some free plastic!
+    materialComposition:
+      Plastic: 100
 
 - type: entity
   parent: ClothingHeadBase
@@ -146,6 +172,7 @@
   id: ClothingHeadHatCatEars
   name: cat ears
   description: "NYAH!"
+  suffix: DO NOT MAP
   components:
   - type: Tag
     tags: # ignore "WhitelistChameleon" tag
@@ -168,3 +195,4 @@
   - type: Clothing
     sprite: Clothing/Head/Misc/squiddy.rsi
   - type: IngestionBlocker
+  - type: IdentityBlocker

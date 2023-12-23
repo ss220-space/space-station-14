@@ -1,7 +1,8 @@
-﻿- type: reagent
+- type: reagent
   id: BaseDrink
   group: Drinks
   abstract: true
+  slippery: true
   metabolisms:
     Drink:
       effects:
@@ -47,7 +48,7 @@
         factor: 2
       - !type:AdjustReagent
         reagent: Ethanol
-        amount: 0.05
+        amount: 0.06
   reactiveEffects:
     Flammable:
       methods: [ Touch ]

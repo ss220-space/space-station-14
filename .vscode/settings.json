@@ -1,0 +1,12 @@
+{
+    "omnisharp.analyzeOpenDocumentsOnly": true,
+    "files.associations": {
+        "*.c": "csharp",
+        "*.rpy": "renpy",
+        "*.script": "lua",
+        ".addon": "json",
+        "*.elua": "lua",
+        "string": "cpp"
+    },
+    "dotnet.defaultSolution": "SpaceStation14.sln"
+}

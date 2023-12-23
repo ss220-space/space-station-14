@@ -1,12 +1,18 @@
+using System.Numerics;
 using Content.Server.DeviceNetwork;
 using Content.Server.DeviceNetwork.Components;
 using Content.Server.DeviceNetwork.Systems;
+using Content.Server.Emp;
 using Content.Server.Power.Components;
+using Content.Server.Storage.EntitySystems;
 using Content.Shared.ActionBlocker;
 using Content.Shared.DeviceNetwork;
+using Content.Shared.Storage.EntitySystems;
 using Content.Shared.SurveillanceCamera;
 using Content.Shared.Verbs;
+using Robust.Server.Containers;
 using Robust.Server.GameObjects;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 
 namespace Content.Server.SurveillanceCamera;
@@ -19,6 +25,7 @@ public sealed class SurveillanceCameraSystem : EntitySystem
     [Dependency] private readonly DeviceNetworkSystem _deviceNetworkSystem = default!;
     [Dependency] private readonly UserInterfaceSystem _userInterface = default!;
     [Dependency] private readonly SharedAppearanceSystem _appearance = default!;
+    [Dependency] private readonly ContainerSystem _container = default!;
 
     // Pings a surveillance camera subnet. All cameras will always respond
     // with a data message if they are on the same subnet.
@@ -47,6 +54,8 @@ public sealed class SurveillanceCameraSystem : EntitySystem
     public const string CameraNameData = "surveillance_camera_data_name";
     public const string CameraSubnetData = "surveillance_camera_data_subnet";
 
+    public const string CameraPositionData = "surveillance_camera_data_position"; // SS220 Camera-Map
+
     public const int CameraNameLimit = 32;
 
     public override void Initialize()
@@ -57,6 +66,9 @@ public sealed class SurveillanceCameraSystem : EntitySystem
         SubscribeLocalEvent<SurveillanceCameraComponent, SurveillanceCameraSetupSetName>(OnSetName);
         SubscribeLocalEvent<SurveillanceCameraComponent, SurveillanceCameraSetupSetNetwork>(OnSetNetwork);
         SubscribeLocalEvent<SurveillanceCameraComponent, GetVerbsEvent<AlternativeVerb>>(AddVerbs);
+
+        SubscribeLocalEvent<SurveillanceCameraComponent, EmpPulseEvent>(OnEmpPulse);
+        SubscribeLocalEvent<SurveillanceCameraComponent, EmpDisabledRemoved>(OnEmpDisabledRemoved);
     }
 
     private void OnPacketReceived(EntityUid uid, SurveillanceCameraComponent component, DeviceNetworkPacketEvent args)
@@ -73,12 +85,23 @@ public sealed class SurveillanceCameraSystem : EntitySystem
 
         if (args.Data.TryGetValue(DeviceNetworkConstants.Command, out string? command))
         {
+            //SS220 Camera-Map begin
+            Vector2 position;
+            if (_container.TryGetContainingContainer(uid, out var container))
+                // If camera is withing container, report the position of the container instead.
+                // Required for proper work of hidden/bodycams with map mode of surveillance monitor.
+                position = Transform(container.Owner).Coordinates.Position;
+            else
+                position = Transform(uid).Coordinates.Position;
+            //SS220 Camera-Map end
+
             var payload = new NetworkPayload()
             {
                 { DeviceNetworkConstants.Command, string.Empty },
                 { CameraAddressData, deviceNet.Address },
                 { CameraNameData, component.CameraId },
-                { CameraSubnetData, string.Empty }
+                { CameraSubnetData, string.Empty },
+                { CameraPositionData, position } //SS220 Camera-Map
             };
 
             var dest = string.Empty;
@@ -193,13 +216,12 @@ public sealed class SurveillanceCameraSystem : EntitySystem
 
     private void OpenSetupInterface(EntityUid uid, EntityUid player, SurveillanceCameraComponent? camera = null, ActorComponent? actor = null)
     {
-        if (!Resolve(uid, ref camera)
-            || !Resolve(player, ref actor))
-        {
+        if (!Resolve(uid, ref camera) || !Resolve(player, ref actor))
             return;
-        }
+        if (!_userInterface.TryGetUi(uid, SurveillanceCameraSetupUiKey.Camera, out var bui))
+            return;
 
-        _userInterface.GetUiOrNull(uid, SurveillanceCameraSetupUiKey.Camera)!.Open(actor.PlayerSession);
+        _userInterface.OpenUi(bui, actor.PlayerSession);
         UpdateSetupInterface(uid, camera);
     }
 
@@ -271,6 +293,10 @@ public sealed class SurveillanceCameraSystem : EntitySystem
 
         if (setting)
         {
+            var attemptEv = new SurveillanceCameraSetActiveAttemptEvent();
+            RaiseLocalEvent(camera, ref attemptEv);
+            if (attemptEv.Cancelled)
+                return;
             component.Active = setting;
         }
         else
@@ -392,6 +418,21 @@ public sealed class SurveillanceCameraSystem : EntitySystem
 
         _appearance.SetData(uid, SurveillanceCameraVisualsKey.Key, key, appearance);
     }
+
+    private void OnEmpPulse(EntityUid uid, SurveillanceCameraComponent component, ref EmpPulseEvent args)
+    {
+        if (component.Active)
+        {
+            args.Affected = true;
+            args.Disabled = true;
+            SetActive(uid, false);
+        }
+    }
+
+    private void OnEmpDisabledRemoved(EntityUid uid, SurveillanceCameraComponent component, ref EmpDisabledRemoved args)
+    {
+        SetActive(uid, true);
+    }
 }
 
 public sealed class OnSurveillanceCameraViewerAddEvent : EntityEventArgs
@@ -414,3 +455,6 @@ public sealed class SurveillanceCameraDeactivateEvent : EntityEventArgs
         Camera = camera;
     }
 }
+
+[ByRefEvent]
+public record struct SurveillanceCameraSetActiveAttemptEvent(bool Cancelled);

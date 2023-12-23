@@ -20,6 +20,10 @@ public enum GeneralStationRecordConsoleKey : byte
 ///     - SelectedKey non-null, Record non-null, RecordListing non-null
 ///         - The selected key has a record tied to it, and the record has been sent.
 ///
+///     - there is added new filters and so added new states
+///         -SelectedKey null, Record null, RecordListing null, filters non-null
+///            the station may have data, but they all did not pass through the filters
+///
 ///     Other states are erroneous.
 /// </summary>
 [Serializable, NetSerializable]
@@ -28,26 +32,29 @@ public sealed class GeneralStationRecordConsoleState : BoundUserInterfaceState
     /// <summary>
     ///     Current selected key.
     /// </summary>
-    public StationRecordKey? SelectedKey { get; }
+    public (NetEntity, uint)? SelectedKey { get; }
     public GeneralStationRecord? Record { get; }
-    public Dictionary<StationRecordKey, string>? RecordListing { get; }
-
-    public GeneralStationRecordConsoleState(StationRecordKey? key, GeneralStationRecord? record, Dictionary<StationRecordKey, string>? recordListing)
+    public Dictionary<(NetEntity, uint), string>? RecordListing { get; }
+    public GeneralStationRecordsFilter? Filter { get; }
+    public GeneralStationRecordConsoleState((NetEntity, uint)? key, GeneralStationRecord? record,
+        Dictionary<(NetEntity, uint), string>? recordListing, GeneralStationRecordsFilter? newFilter)
     {
         SelectedKey = key;
         Record = record;
         RecordListing = recordListing;
+        Filter = newFilter;
     }
 
-    public bool IsEmpty() => SelectedKey == null && Record == null && RecordListing == null;
+    public bool IsEmpty() => SelectedKey == null
+        && Record == null && RecordListing == null;
 }
 
 [Serializable, NetSerializable]
 public sealed class SelectGeneralStationRecord : BoundUserInterfaceMessage
 {
-    public StationRecordKey? SelectedKey { get; }
+    public (NetEntity, uint)? SelectedKey { get; }
 
-    public SelectGeneralStationRecord(StationRecordKey? selectedKey)
+    public SelectGeneralStationRecord((NetEntity, uint)? selectedKey)
     {
         SelectedKey = selectedKey;
     }

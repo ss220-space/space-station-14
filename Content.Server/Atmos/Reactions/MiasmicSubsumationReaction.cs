@@ -8,9 +8,9 @@ namespace Content.Server.Atmos.Reactions;
 ///     Converts frezon into miasma when the two come into contact. Does not occur at very high temperatures.
 /// </summary>
 [UsedImplicitly]
-public sealed class MiasmicSubsumationReaction : IGasReactionEffect
+public sealed partial class MiasmicSubsumationReaction : IGasReactionEffect
 {
-    public ReactionResult React(GasMixture mixture, IGasMixtureHolder? holder, AtmosphereSystem atmosphereSystem)
+    public ReactionResult React(GasMixture mixture, IGasMixtureHolder? holder, AtmosphereSystem atmosphereSystem, float heatScale)
     {
         var initialMiasma = mixture.GetMoles(Gas.Miasma);
         var initialFrezon = mixture.GetMoles(Gas.Frezon);

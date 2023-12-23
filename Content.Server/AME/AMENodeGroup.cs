@@ -1,185 +1,218 @@
 using System.Linq;
-using Content.Server.AME.Components;
+using Content.Server.Ame.Components;
+using Content.Server.Ame.EntitySystems;
+using Content.Server.Chat.Managers;
 using Content.Server.Explosion.EntitySystems;
 using Content.Server.NodeContainer.NodeGroups;
 using Content.Server.NodeContainer.Nodes;
 using Robust.Shared.Map;
-using Robust.Shared.Map.Components;
 using Robust.Shared.Random;
 
-namespace Content.Server.AME
+namespace Content.Server.Ame;
+
+/// <summary>
+/// Node group class for handling the Antimatter Engine's console and parts.
+/// </summary>
+[NodeGroup(NodeGroupID.AMEngine)]
+public sealed class AmeNodeGroup : BaseNodeGroup
 {
+    [Dependency] private readonly IChatManager _chat = default!;
+    [Dependency] private readonly IEntityManager _entMan = default!;
+    [Dependency] private readonly IMapManager _mapManager = default!;
+    [Dependency] private readonly IRobustRandom _random = default!;
+
     /// <summary>
-    /// Node group class for handling the Antimatter Engine's console and parts.
+    /// The AME controller which is currently in control of this node group.
+    /// This could be tracked a few different ways, but this is most convenient,
+    /// since any part connected to the node group can easily find the master.
     /// </summary>
-    [NodeGroup(NodeGroupID.AMEngine)]
-    public sealed class AMENodeGroup : BaseNodeGroup
+    [ViewVariables]
+    private EntityUid? _masterController;
+
+    public EntityUid? MasterController => _masterController;
+
+    /// <summary>
+    /// The set of AME shielding units that currently count as cores for the AME.
+    /// </summary>
+    private readonly List<EntityUid> _cores = new();
+
+    public int CoreCount => _cores.Count;
+
+    public override void LoadNodes(List<Node> groupNodes)
     {
-        /// <summary>
-        /// The AME controller which is currently in control of this node group.
-        /// This could be tracked a few different ways, but this is most convenient,
-        /// since any part connected to the node group can easily find the master.
-        /// </summary>
-        [ViewVariables]
-        private AMEControllerComponent? _masterController;
+        base.LoadNodes(groupNodes);
 
-        [Dependency] private readonly IRobustRandom _random = default!;
+        EntityUid? gridEnt = null;
 
-        [Dependency] private readonly IEntityManager _entMan = default!;
+        var ameControllerSystem = _entMan.System<AmeControllerSystem>();
+        var ameShieldingSystem = _entMan.System<AmeShieldingSystem>();
 
-        public AMEControllerComponent? MasterController => _masterController;
-
-        private readonly List<AMEShieldComponent> _cores = new();
-
-        public int CoreCount => _cores.Count;
-
-        public override void LoadNodes(List<Node> groupNodes)
+        var shieldQuery = _entMan.GetEntityQuery<AmeShieldComponent>();
+        var controllerQuery = _entMan.GetEntityQuery<AmeControllerComponent>();
+        var xformQuery = _entMan.GetEntityQuery<TransformComponent>();
+        foreach (var node in groupNodes)
         {
-            base.LoadNodes(groupNodes);
+            var nodeOwner = node.Owner;
+            if (!shieldQuery.TryGetComponent(nodeOwner, out var shield))
+                continue;
+            if (!xformQuery.TryGetComponent(nodeOwner, out var xform))
+                continue;
+            if (!_mapManager.TryGetGrid(xform.GridUid, out var grid))
+                continue;
 
-            var mapManager = IoCManager.Resolve<IMapManager>();
-            MapGridComponent? grid = null;
+            if (gridEnt == null)
+                gridEnt = xform.GridUid;
+            else if (gridEnt != xform.GridUid)
+                continue;
 
-            foreach (var node in groupNodes)
+            var nodeNeighbors = grid.GetCellsInSquareArea(xform.Coordinates, 1)
+                .Where(entity => entity != nodeOwner && shieldQuery.HasComponent(entity));
+
+            if (nodeNeighbors.Count() >= 8)
             {
-                var nodeOwner = node.Owner;
-                if (_entMan.TryGetComponent(nodeOwner, out AMEShieldComponent? shield))
-                {
-                    var xform = _entMan.GetComponent<TransformComponent>(nodeOwner);
-                    if (xform.GridUid != grid?.Owner && !mapManager.TryGetGrid(xform.GridUid, out grid))
-                        continue;
-
-                    if (grid == null)
-                        continue;
-
-                    var nodeNeighbors = grid.GetCellsInSquareArea(xform.Coordinates, 1)
-                        .Where(entity => entity != nodeOwner && _entMan.HasComponent<AMEShieldComponent>(entity));
-
-                    if (nodeNeighbors.Count() >= 8)
-                    {
-                        _cores.Add(shield);
-                        shield.SetCore();
-                        // Core visuals will be updated later.
-                    }
-                    else
-                    {
-                        shield.UnsetCore();
-                    }
-                }
+                _cores.Add(nodeOwner);
+                ameShieldingSystem.SetCore(nodeOwner, true, shield);
+                // Core visuals will be updated later.
             }
-
-            // Separate to ensure core count is correctly updated.
-            foreach (var node in groupNodes)
+            else
             {
-                var nodeOwner = node.Owner;
-                if (_entMan.TryGetComponent(nodeOwner, out AMEControllerComponent? controller))
-                {
-                    if (_masterController == null)
-                    {
-                        // Has to be the first one, as otherwise IsMasterController will return true on them all for this first update.
-                        _masterController = controller;
-                    }
-                    controller.OnAMENodeGroupUpdate();
-                }
-            }
-
-            UpdateCoreVisuals();
-        }
-
-        public void UpdateCoreVisuals()
-        {
-            var injectionAmount = 0;
-            var injecting = false;
-
-            if (_masterController != null)
-            {
-                injectionAmount = _masterController.InjectionAmount;
-                injecting = _masterController.Injecting;
-            }
-
-            var injectionStrength = CoreCount > 0 ? injectionAmount / CoreCount : 0;
-
-            foreach (AMEShieldComponent core in _cores)
-            {
-                core.UpdateCoreVisuals(injectionStrength, injecting);
+                ameShieldingSystem.SetCore(nodeOwner, false, shield);
             }
         }
 
-        public float InjectFuel(int fuel, out bool overloading)
+        // Separate to ensure core count is correctly updated.
+        foreach (var node in groupNodes)
         {
-            overloading = false;
-            if(fuel > 0 && CoreCount > 0)
-            {
-                var safeFuelLimit = CoreCount * 2;
-                if (fuel > safeFuelLimit)
-                {
-                    // The AME is being overloaded.
-                    // Note about these maths: I would assume the general idea here is to make larger engines less safe to overload.
-                    // In other words, yes, those are supposed to be CoreCount, not safeFuelLimit.
-                    var instability = 0;
-                    var overloadVsSizeResult = fuel - CoreCount;
+            var nodeOwner = node.Owner;
+            if (!controllerQuery.TryGetComponent(nodeOwner, out var controller))
+                continue;
 
-                    // fuel > safeFuelLimit: Slow damage. Can safely run at this level for burst periods if the engine is small and someone is keeping an eye on it.
-                    if (_random.Prob(0.5f))
-                        instability = 1;
-                    // overloadVsSizeResult > 5:
-                    if (overloadVsSizeResult > 5)
-                        instability = 5;
-                    // overloadVsSizeResult > 10: This will explode in at most 5 injections.
-                    if (overloadVsSizeResult > 10)
-                        instability = 20;
+            if (_masterController == null)
+                _masterController = nodeOwner;
 
-                    // Apply calculated instability
-                    if (instability != 0)
-                    {
-                        overloading = true;
-                        foreach(AMEShieldComponent core in _cores)
-                        {
-                            core.CoreIntegrity -= instability;
-                        }
-                    }
-                }
-                // Note the float conversions. The maths will completely fail if not done using floats.
-                // Oh, and don't ever stuff the result of this in an int. Seriously.
-                return (((float) fuel) / CoreCount) * fuel * 20000;
-            }
+            ameControllerSystem.UpdateUi(nodeOwner, controller);
+        }
+
+        UpdateCoreVisuals();
+    }
+
+    public void UpdateCoreVisuals()
+    {
+        var injectionAmount = 0;
+        var injecting = false;
+
+        if (_entMan.TryGetComponent<AmeControllerComponent>(_masterController, out var controller))
+        {
+            injectionAmount = controller.InjectionAmount;
+            injecting = controller.Injecting;
+        }
+
+        var injectionStrength = CoreCount > 0 ? injectionAmount / CoreCount : 0;
+
+        var coreSystem = _entMan.System<AmeShieldingSystem>();
+        foreach (var coreUid in _cores)
+        {
+            coreSystem.UpdateCoreVisuals(coreUid, injectionStrength, injecting);
+        }
+    }
+
+    public float InjectFuel(int fuel, out bool overloading)
+    {
+        overloading = false;
+
+        var shieldQuery = _entMan.GetEntityQuery<AmeShieldComponent>();
+        if (fuel <= 0 || CoreCount <= 0)
             return 0;
+
+        var safeFuelLimit = CoreCount * 2;
+
+        var powerOutput = CalculatePower(fuel, CoreCount);
+        if (fuel <= safeFuelLimit)
+            return powerOutput;
+
+        // The AME is being overloaded.
+        // Note about these maths: I would assume the general idea here is to make larger engines less safe to overload.
+        // In other words, yes, those are supposed to be CoreCount, not safeFuelLimit.
+        var instability = 0;
+        var overloadVsSizeResult = fuel - CoreCount;
+
+        // fuel > safeFuelLimit: Slow damage. Can safely run at this level for burst periods if the engine is small and someone is keeping an eye on it.
+        if (_random.Prob(0.5f))
+            instability = 1;
+        // overloadVsSizeResult > 5:
+        if (overloadVsSizeResult > 5)
+            instability = 3;
+        // overloadVsSizeResult > 10: This will explode in at most 20 injections.
+        if (overloadVsSizeResult > 10)
+            instability = 5;
+
+        // Apply calculated instability
+        if (instability == 0)
+            return powerOutput;
+
+        overloading = true;
+        var integrityCheck = 100;
+        foreach (var coreUid in _cores)
+        {
+            if (!shieldQuery.TryGetComponent(coreUid, out var core))
+                continue;
+
+            var oldIntegrity = core.CoreIntegrity;
+            core.CoreIntegrity -= instability;
+
+            if (oldIntegrity > 95
+                && core.CoreIntegrity <= 95
+                && core.CoreIntegrity < integrityCheck)
+                integrityCheck = core.CoreIntegrity;
         }
 
-        public int GetTotalStability()
-        {
-            if(CoreCount < 1) { return 100; }
-            var stability = 0;
+        // Admin alert
+        if (integrityCheck != 100 && _masterController.HasValue)
+            _chat.SendAdminAlert($"AME overloading: {_entMan.ToPrettyString(_masterController.Value)}");
 
-            foreach(AMEShieldComponent core in _cores)
-            {
+        return powerOutput;
+    }
+
+    /// <summary>
+    /// Calculates the amount of power the AME can produce with the given settings
+    /// </summary>
+    public float CalculatePower(int fuel, int cores)
+    {
+        // Fuel is squared so more fuel vastly increases power and efficiency
+        // We divide by the number of cores so a larger AME is less efficient at the same fuel settings
+        // this results in all AMEs having the same efficiency at the same fuel-per-core setting
+        return 20000f * fuel * fuel / cores;
+    }
+
+    public int GetTotalStability()
+    {
+        if (CoreCount < 1)
+            return 100;
+
+        var stability = 0;
+        var coreQuery = _entMan.GetEntityQuery<AmeShieldComponent>();
+        foreach (var coreUid in _cores)
+        {
+            if (coreQuery.TryGetComponent(coreUid, out var core))
                 stability += core.CoreIntegrity;
-            }
-
-            stability = stability / CoreCount;
-
-            return stability;
         }
 
-        public void ExplodeCores()
-        {
-            if(_cores.Count < 1 || MasterController == null) { return; }
+        stability /= CoreCount;
 
-            float radius = 0;
+        return stability;
+    }
 
-            /*
-             * todo: add an exact to the shielding and make this find the core closest to the controller
-             * so they chain explode, after helpers have been added to make it not cancer
-            */
+    public void ExplodeCores()
+    {
+        if (_cores.Count < 1
+        || !_entMan.TryGetComponent<AmeControllerComponent>(MasterController, out var controller))
+            return;
 
-            foreach (AMEShieldComponent core in _cores)
-            {
-                radius += MasterController.InjectionAmount;
-            }
-
-            radius *= 2;
-            radius = Math.Min(radius, 8);
-            EntitySystem.Get<ExplosionSystem>().TriggerExplosive(MasterController.Owner, radius: radius, delete: false);
-        }
+        /*
+            * todo: add an exact to the shielding and make this find the core closest to the controller
+            * so they chain explode, after helpers have been added to make it not cancer
+        */
+        var radius = Math.Min(2 * CoreCount * controller.InjectionAmount, 8f);
+        _entMan.System<ExplosionSystem>().TriggerExplosive(MasterController.Value, radius: radius, delete: false);
     }
 }

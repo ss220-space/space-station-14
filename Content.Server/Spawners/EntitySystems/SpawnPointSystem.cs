@@ -1,7 +1,7 @@
-﻿using System.Linq;
-using Content.Server.GameTicking;
+﻿using Content.Server.GameTicking;
 using Content.Server.Spawners.Components;
 using Content.Server.Station.Systems;
+using Robust.Shared.Map;
 using Robust.Shared.Random;
 
 namespace Content.Server.Spawners.EntitySystems;
@@ -20,51 +20,54 @@ public sealed class SpawnPointSystem : EntitySystem
 
     private void OnSpawnPlayer(PlayerSpawningEvent args)
     {
+        if (args.SpawnResult != null)
+            return;
+
         // TODO: Cache all this if it ends up important.
-        var points = EntityQuery<SpawnPointComponent>().ToList();
-        _random.Shuffle(points);
-        foreach (var spawnPoint in points)
+        var points = EntityQueryEnumerator<SpawnPointComponent, TransformComponent>();
+        var possiblePositions = new List<EntityCoordinates>();
+
+        while ( points.MoveNext(out var uid, out var spawnPoint, out var xform))
         {
-            var xform = Transform(spawnPoint.Owner);
-            if (args.Station != null && _stationSystem.GetOwningStation(spawnPoint.Owner, xform) != args.Station)
+            if (args.Station != null && _stationSystem.GetOwningStation(uid, xform) != args.Station)
                 continue;
 
-            if (_gameTicker.RunLevel == GameRunLevel.InRound && spawnPoint.SpawnType == SpawnPointType.LateJoin)
+            if (_gameTicker.RunLevel == GameRunLevel.InRound && spawnPoint.SpawnType == SpawnPointType.LateJoin && args.AllowLatejoinSpawnpoints)
             {
-                args.SpawnResult = _stationSpawning.SpawnPlayerMob(
-                    xform.Coordinates,
-                    args.Job,
-                    args.HumanoidCharacterProfile,
-                    args.Station);
-
-                return;
+                possiblePositions.Add(xform.Coordinates);
             }
-            else if (_gameTicker.RunLevel != GameRunLevel.InRound && spawnPoint.SpawnType == SpawnPointType.Job && (args.Job == null || spawnPoint.Job?.ID == args.Job.Prototype.ID))
-            {
-                args.SpawnResult = _stationSpawning.SpawnPlayerMob(
-                    xform.Coordinates,
-                    args.Job,
-                    args.HumanoidCharacterProfile,
-                    args.Station);
 
-                return;
+            if ((_gameTicker.RunLevel != GameRunLevel.InRound || !args.AllowLatejoinSpawnpoints) &&
+                spawnPoint.SpawnType == SpawnPointType.Job &&
+                (args.Job == null || spawnPoint.Job?.ID == args.Job.Prototype))
+            {
+                possiblePositions.Add(xform.Coordinates);
             }
         }
 
-        // Ok we've still not returned, but we need to put them /somewhere/.
-        // TODO: Refactor gameticker spawning code so we don't have to do this!
-        foreach (var spawnPoint in points)
+        if (possiblePositions.Count == 0)
         {
-            var xform = Transform(spawnPoint.Owner);
-            args.SpawnResult = _stationSpawning.SpawnPlayerMob(
-                xform.Coordinates,
-                args.Job,
-                args.HumanoidCharacterProfile,
-                args.Station);
+            // Ok we've still not returned, but we need to put them /somewhere/.
+            // TODO: Refactor gameticker spawning code so we don't have to do this!
+            var points2 = EntityQueryEnumerator<SpawnPointComponent, TransformComponent>();
 
-            return;
+            if (points2.MoveNext(out var uid, out var spawnPoint, out var xform))
+            {
+                possiblePositions.Add(xform.Coordinates);
+            }
+            else
+            {
+                Log.Error("No spawn points were available!");
+                return;
+            }
         }
 
-        Logger.ErrorS("spawning", "No spawn points were available!");
+        var spawnLoc = _random.Pick(possiblePositions);
+
+        args.SpawnResult = _stationSpawning.SpawnPlayerMob(
+            spawnLoc,
+            args.Job,
+            args.HumanoidCharacterProfile,
+            args.Station);
     }
 }

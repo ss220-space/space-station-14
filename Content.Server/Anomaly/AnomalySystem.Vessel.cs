@@ -20,14 +20,25 @@ public sealed partial class AnomalySystem
     {
         SubscribeLocalEvent<AnomalyVesselComponent, ComponentShutdown>(OnVesselShutdown);
         SubscribeLocalEvent<AnomalyVesselComponent, MapInitEvent>(OnVesselMapInit);
-        SubscribeLocalEvent<AnomalyVesselComponent, RefreshPartsEvent>(OnRefreshParts);
         SubscribeLocalEvent<AnomalyVesselComponent, UpgradeExamineEvent>(OnUpgradeExamine);
         SubscribeLocalEvent<AnomalyVesselComponent, InteractUsingEvent>(OnVesselInteractUsing);
         SubscribeLocalEvent<AnomalyVesselComponent, ExaminedEvent>(OnExamined);
         SubscribeLocalEvent<AnomalyVesselComponent, ResearchServerGetPointsPerSecondEvent>(OnVesselGetPointsPerSecond);
         SubscribeLocalEvent<AnomalyVesselComponent, EntityUnpausedEvent>(OnUnpaused);
-        SubscribeLocalEvent<AnomalyShutdownEvent>(OnVesselAnomalyShutdown);
-        SubscribeLocalEvent<AnomalyStabilityChangedEvent>(OnVesselAnomalyStabilityChanged);
+        SubscribeLocalEvent<AnomalyShutdownEvent>(OnShutdown);
+        SubscribeLocalEvent<AnomalyStabilityChangedEvent>(OnStabilityChanged);
+    }
+
+    private void OnStabilityChanged(ref AnomalyStabilityChangedEvent args)
+    {
+        OnVesselAnomalyStabilityChanged(ref args);
+        OnScannerAnomalyStabilityChanged(ref args);
+    }
+
+    private void OnShutdown(ref AnomalyShutdownEvent args)
+    {
+        OnVesselAnomalyShutdown(ref args);
+        OnScannerAnomalyShutdown(ref args);
     }
 
     private void OnExamined(EntityUid uid, AnomalyVesselComponent component, ExaminedEvent args)
@@ -56,12 +67,6 @@ public sealed partial class AnomalySystem
         UpdateVesselAppearance(uid,  component);
     }
 
-    private void OnRefreshParts(EntityUid uid, AnomalyVesselComponent component, RefreshPartsEvent args)
-    {
-        var modifierRating = args.PartRatings[component.MachinePartPointModifier] - 1;
-        component.PointMultiplier = MathF.Pow(component.PartRatingPointModifier, modifierRating);
-    }
-
     private void OnUpgradeExamine(EntityUid uid, AnomalyVesselComponent component, UpgradeExamineEvent args)
     {
         args.AddPercentageUpgrade("anomaly-vessel-component-upgrade-output", component.PointMultiplier);
@@ -81,6 +86,7 @@ public sealed partial class AnomalySystem
 
         component.Anomaly = scanner.ScannedAnomaly;
         anomalyComponent.ConnectedVessel = uid;
+        _radiation.SetSourceEnabled(uid, true);
         UpdateVesselAppearance(uid,  component);
         Popup.PopupEntity(Loc.GetString("anomaly-vessel-component-anomaly-assigned"), uid);
     }
@@ -100,15 +106,15 @@ public sealed partial class AnomalySystem
 
     private void OnVesselAnomalyShutdown(ref AnomalyShutdownEvent args)
     {
-        foreach (var component in EntityQuery<AnomalyVesselComponent>())
+        var query = EntityQueryEnumerator<AnomalyVesselComponent>();
+        while (query.MoveNext(out var ent, out var component))
         {
-            var ent = component.Owner;
-
             if (args.Anomaly != component.Anomaly)
                 continue;
 
             component.Anomaly = null;
             UpdateVesselAppearance(ent,  component);
+            _radiation.SetSourceEnabled(ent, false);
 
             if (!args.Supercritical)
                 continue;
@@ -118,9 +124,9 @@ public sealed partial class AnomalySystem
 
     private void OnVesselAnomalyStabilityChanged(ref AnomalyStabilityChangedEvent args)
     {
-        foreach (var component in EntityQuery<AnomalyVesselComponent>())
+        var query = EntityQueryEnumerator<AnomalyVesselComponent>();
+        while (query.MoveNext(out var ent, out var component))
         {
-            var ent = component.Owner;
             if (args.Anomaly != component.Anomaly)
                 continue;
 
@@ -145,10 +151,8 @@ public sealed partial class AnomalySystem
             return;
 
         Appearance.SetData(uid, AnomalyVesselVisuals.HasAnomaly, on, appearanceComponent);
-        if (TryComp<SharedPointLightComponent>(uid, out var pointLightComponent))
-        {
-            pointLightComponent.Enabled = on;
-        }
+        if (_pointLight.TryGetLight(uid, out var pointLightComponent))
+            _pointLight.SetEnabled(uid, on, pointLightComponent);
 
         // arbitrary value for the generic visualizer to use.
         // i didn't feel like making an enum for this.
@@ -171,9 +175,9 @@ public sealed partial class AnomalySystem
 
     private void UpdateVessels()
     {
-        foreach (var vessel in EntityQuery<AnomalyVesselComponent>())
+        var query = EntityQueryEnumerator<AnomalyVesselComponent>();
+        while (query.MoveNext(out var vesselEnt, out var vessel))
         {
-            var vesselEnt = vessel.Owner;
             if (vessel.Anomaly is not { } anomUid)
                 continue;
 

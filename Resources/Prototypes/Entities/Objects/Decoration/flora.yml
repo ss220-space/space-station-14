@@ -1,23 +1,25 @@
 - type: entity
   id: BaseRock
+  name: boulder
   description: Heavy as a really heavy thing.
   abstract: true
   components:
   - type: Clickable
   - type: Sprite
+    noRot: true
     sprite: Objects/Decoration/Flora/flora_rockssolid.rsi
-    netsync: false
   - type: Physics
     bodyType: Static
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeCircle
-        radius: 0.4
-      density: 1000
-      layer:
-      - HalfWallLayer
-      - Opaque
+      fix1:
+        shape:
+          !type:PhysShapeCircle
+          radius: 0.4
+        density: 1000
+        layer:
+        - HalfWallLayer
+        - Opaque
   - type: Climbable
   - type: Damageable
     damageContainer: Inorganic
@@ -31,7 +33,6 @@
           - !type:DoActsBehavior
             acts: [ "Destruction" ]
 
-
 - type: entity
   id: BaseTree
   description: Yep, it's a tree.
@@ -41,23 +42,30 @@
   - type: SpriteFade
   - type: Clickable
   - type: Sprite
+    noRot: true
     sprite: Objects/Decoration/Flora/flora_trees.rsi
-    netsync: false
     drawdepth: Overdoors
     offset: 0,0.9
   - type: Physics
     bodyType: Static
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.35,-0.4,0.35,0.4"
-      density: 1000
-      layer:
-      - WallLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.35,-0.4,0.35,0.4"
+        density: 1000
+        layer:
+        - WallLayer
   - type: Damageable
     damageContainer: Inorganic
     damageModifierSet: Wood
+  - type: MeleeSound
+    soundGroups:
+      Brute:
+        path: /Audio/Effects/chop.ogg
+        params:
+          variation: 0.05
   - type: Destructible
     thresholds:
     - trigger:
@@ -70,6 +78,12 @@
         !type:DamageTrigger
         damage: 50
       behaviors:
+      - !type:PlaySoundBehavior
+        sound:
+          path: /Audio/Effects/tree_fell.ogg
+          params:
+            volume: 5
+            variation: 0.05
       - !type:DoActsBehavior
         acts: [ "Destruction" ]
       - !type:SpawnEntitiesBehavior
@@ -88,12 +102,13 @@
     offset: 0,0.7
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.1,-0.3,0.1,0.3"
-      density: 4000
-      layer:
-      - WallLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.1,-0.3,0.1,0.3"
+        density: 4000
+        layer:
+        - WallLayer
 
 - type: entity
   parent: BaseTree
@@ -105,12 +120,13 @@
     offset: 0,1.55
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.18,-0.35,0.18,0.35"
-      density: 2000
-      layer:
-      - WallLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.18,-0.35,0.18,0.35"
+        density: 2000
+        layer:
+        - WallLayer
 
 - type: entity
   parent: BaseTree
@@ -122,17 +138,17 @@
     offset: 0,1.15
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.1,-0.35,0.1,0.35"
-      density: 3500
-      layer:
-      - WallLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.1,-0.35,0.1,0.35"
+        density: 3500
+        layer:
+        - WallLayer
 
 - type: entity
   parent: BaseRock
   id: FloraRockSolid01
-  name: rock
   components:
   - type: Sprite
     state: rocksolid01
@@ -140,7 +156,6 @@
 - type: entity
   parent: BaseRock
   id: FloraRockSolid02
-  name: rock
   components:
   - type: Sprite
     state: rocksolid02
@@ -148,10 +163,59 @@
 - type: entity
   parent: BaseRock
   id: FloraRockSolid03
-  name: rock
   components:
   - type: Sprite
     state: rocksolid03
+
+- type: entity
+  name: stalagmite
+  description: Natural stone spikes.
+  parent: BaseRock
+  id: FloraStalagmite1
+  components:
+  - type: Sprite
+    sprite: Objects/Decoration/Flora/flora_stalagmite.rsi
+    state: stalagmite1
+
+- type: entity
+  parent: FloraStalagmite1
+  id: FloraStalagmite2
+  components:
+  - type: Sprite
+    sprite: Objects/Decoration/Flora/flora_stalagmite.rsi
+    state: stalagmite2
+
+- type: entity
+  parent: FloraStalagmite1
+  id: FloraStalagmite3
+  components:
+  - type: Sprite
+    sprite: Objects/Decoration/Flora/flora_stalagmite.rsi
+    state: stalagmite3
+
+- type: entity
+  parent: FloraStalagmite1
+  id: FloraStalagmite4
+  components:
+  - type: Sprite
+    sprite: Objects/Decoration/Flora/flora_stalagmite.rsi
+    state: stalagmite4
+
+- type: entity
+  parent: FloraStalagmite1
+  id: FloraStalagmite5
+  components:
+  - type: Sprite
+    sprite: Objects/Decoration/Flora/flora_stalagmite.rsi
+    state: stalagmite5
+
+- type: entity
+  parent: FloraStalagmite1
+  id: FloraStalagmite6
+  components:
+  - type: Sprite
+    sprite: Objects/Decoration/Flora/flora_stalagmite.rsi
+    state: stalagmite6
 
 - type: entity
   parent: BaseTree
@@ -347,21 +411,25 @@
     state: treechristmas02
   - type: Fixtures
     fixtures:
-    - shape:
-        !type:PhysShapeAabb
-        bounds: "-0.8,-1.5,0.8,-0.8"
-      density: 4500
-      layer:
-      - WallLayer
+      fix1:
+        shape:
+          !type:PhysShapeAabb
+          bounds: "-0.5,0,0.5,0.75"
+        density: 4500
+        layer:
+        - WallLayer
   - type: LimitedItemGiver
     spawnEntries:
       - id: PresentRandom
         orGroup: present
       - id: PresentRandomUnsafe
-        prob: 0.5
+        prob: 0.35
         orGroup: present
       - id: PresentRandomInsane
-        prob: 0.2
+        prob: 0.20
+        orGroup: present
+      - id: PresentRandomCash
+        prob: 0.20
         orGroup: present
     receivedPopup: christmas-tree-got-gift
     deniedPopup: christmas-tree-no-gift
@@ -374,3 +442,48 @@
   components:
   - type: Sprite
     state: treestumpconifer
+
+- type: entity
+  parent: FloraTree01
+  id: ShadowTree01
+  name: dark wood
+  description: The leaves are whispering about you.
+  components:
+  - type: Sprite
+    sprite: Objects/Decoration/Flora/flora_shadow_trees.rsi
+    state: tree01
+
+- type: entity
+  parent: ShadowTree01
+  id: ShadowTree02
+  components:
+  - type: Sprite
+    state: tree02
+
+- type: entity
+  parent: ShadowTree01
+  id: ShadowTree03
+  components:
+  - type: Sprite
+    state: tree03
+
+- type: entity
+  parent: ShadowTree01
+  id: ShadowTree04
+  components:
+  - type: Sprite
+    state: tree04
+
+- type: entity
+  parent: ShadowTree01
+  id: ShadowTree05
+  components:
+  - type: Sprite
+    state: tree05
+
+- type: entity
+  parent: ShadowTree01
+  id: ShadowTree06
+  components:
+  - type: Sprite
+    state: tree06

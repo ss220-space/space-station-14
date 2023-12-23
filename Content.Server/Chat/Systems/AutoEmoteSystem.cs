@@ -1,11 +1,11 @@
-namespace Content.Server.Chat.Systems;
-
 using System.Linq;
 using Content.Shared.Chat.Prototypes;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Random;
 using Robust.Shared.Timing;
 using Robust.Shared.Utility;
+
+namespace Content.Server.Chat.Systems;
 
 public sealed class AutoEmoteSystem : EntitySystem
 {
@@ -27,14 +27,13 @@ public sealed class AutoEmoteSystem : EntitySystem
         base.Update(frameTime);
 
         var curTime = _gameTiming.CurTime;
-        foreach (var autoEmote in EntityQuery<AutoEmoteComponent>())
+        var query = EntityQueryEnumerator<AutoEmoteComponent>();
+        while (query.MoveNext(out var uid, out var autoEmote))
         {
-            var uid = autoEmote.Owner;
-
             if (autoEmote.NextEmoteTime > curTime)
                 continue;
 
-            foreach ((var key, var time) in autoEmote.EmoteTimers)
+            foreach (var (key, time) in autoEmote.EmoteTimers)
             {
                 if (time > curTime)
                     continue;
@@ -47,7 +46,7 @@ public sealed class AutoEmoteSystem : EntitySystem
 
                 if (autoEmotePrototype.WithChat)
                 {
-                    _chatSystem.TryEmoteWithChat(uid, autoEmotePrototype.EmoteId, autoEmotePrototype.HiddenFromChatWindow);
+                    _chatSystem.TryEmoteWithChat(uid, autoEmotePrototype.EmoteId, autoEmotePrototype.HiddenFromChatWindow ? ChatTransmitRange.HideChat : ChatTransmitRange.Normal);
                 }
                 else
                 {
@@ -83,6 +82,8 @@ public sealed class AutoEmoteSystem : EntitySystem
         if (!Resolve(uid, ref autoEmote, logMissing: false))
             return false;
 
+        DebugTools.Assert(autoEmote.LifeStage <= ComponentLifeStage.Running);
+
         if (autoEmote.Emotes.Contains(autoEmotePrototypeId))
             return false;
 
@@ -93,9 +94,9 @@ public sealed class AutoEmoteSystem : EntitySystem
     }
 
     /// <summary>
-    /// Stop preforming an emote.
+    /// Stop preforming an emote. Note that by default this will queue empty components for removal.
     /// </summary>
-    public bool RemoveEmote(EntityUid uid, string autoEmotePrototypeId, AutoEmoteComponent? autoEmote = null)
+    public bool RemoveEmote(EntityUid uid, string autoEmotePrototypeId, AutoEmoteComponent? autoEmote = null, bool removeEmpty = true)
     {
         if (!Resolve(uid, ref autoEmote, logMissing: false))
             return false;
@@ -105,7 +106,13 @@ public sealed class AutoEmoteSystem : EntitySystem
         if (!autoEmote.EmoteTimers.Remove(autoEmotePrototypeId))
             return false;
 
-        autoEmote.NextEmoteTime = autoEmote.EmoteTimers.Values.Min();
+        if (autoEmote.EmoteTimers.Count > 0)
+            autoEmote.NextEmoteTime = autoEmote.EmoteTimers.Values.Min();
+        else if (removeEmpty)
+            RemCompDeferred(uid, autoEmote);
+        else
+            autoEmote.NextEmoteTime = TimeSpan.MaxValue;
+
         return true;
     }
 

@@ -1,0 +1,31 @@
+- type: job
+  id: Paramedic
+  name: job-name-paramedic
+  description: job-description-paramedic
+  playTimeTracker: JobParamedic
+  requirements:
+    - !type:DepartmentTimeRequirement
+      department: Medical
+      time: 36000 # SS220-RoleTime
+  startingGear: ParamedicGear
+  icon: "JobIconParamedic"
+  supervisors: job-supervisors-cmo
+  access:
+  - Medical
+  - Maintenance
+  - Paramedic
+  extendedAccess:
+  - Chemistry
+
+- type: startingGear
+  id: ParamedicGear
+  equipment:
+    jumpsuit: ClothingUniformJumpsuitParamedic
+    back: ClothingBackpackParamedicFilled
+    shoes: ClothingShoesColorBlue
+    id: ParamedicPDA
+    ears: ClothingHeadsetMedical
+    belt: ClothingBeltParamedicFilled
+  innerClothingSkirt: ClothingUniformJumpskirtParamedic
+  satchel: ClothingBackpackSatchelParamedicFilled
+  duffelbag: ClothingBackpackDuffelParamedicFilled

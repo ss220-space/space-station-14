@@ -5,6 +5,7 @@ using Content.Shared.Tools;
 using Content.Shared.Tools.Components;
 using Robust.Client.GameObjects;
 using Robust.Shared.GameStates;
+using SharedToolSystem = Content.Shared.Tools.Systems.SharedToolSystem;
 
 namespace Content.Client.Tools
 {
@@ -61,6 +62,11 @@ namespace Content.Client.Tools
             welder.Fuel = state.Fuel;
             welder.Lit = state.Lit;
             welder.UiUpdateNeeded = true;
+        }
+
+        protected override bool IsWelder(EntityUid uid)
+        {
+            return HasComp<WelderComponent>(uid);
         }
     }
 }

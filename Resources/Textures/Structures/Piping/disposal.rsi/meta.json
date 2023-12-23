@@ -5,7 +5,7 @@
         "y": 32
     },
     "license": "CC-BY-SA-3.0",
-    "copyright": "https://github.com/discordia-space/CEV-Eris/blob/bbe32606902c90f5290b57d905a3f31b84dc6d7d/icons/obj/pipes/disposal.dmi and modified by DrSmugleaf",
+    "copyright": "https://github.com/discordia-space/CEV-Eris/blob/bbe32606902c90f5290b57d905a3f31b84dc6d7d/icons/obj/pipes/disposal.dmi and modified by DrSmugleaf and SonicHDC. Signal router sprites based on normal router modified by deltanedas (github).",
     "states": [
         {
             "name": "condisposal",
@@ -18,6 +18,15 @@
         },
         {
             "name": "conmailing",
+            "directions": 1,
+            "delays": [
+                [
+                    1.0
+                ]
+            ]
+        },
+		{
+            "name": "condisposal-rnd",
             "directions": 1,
             "delays": [
                 [
@@ -196,6 +205,15 @@
                 ]
             ]
         },
+		{
+            "name": "disposal-rnd",
+            "directions": 1,
+            "delays": [
+                [
+                    1.0
+                ]
+            ]
+        },
         {
             "name": "mailing",
             "directions": 1,
@@ -207,6 +225,15 @@
         },
         {
             "name": "disposal-charging",
+            "directions": 1,
+            "delays": [
+                [
+                    1.0
+                ]
+            ]
+        },
+		{
+            "name": "disposal-charging-rnd",
             "directions": 1,
             "delays": [
                 [
@@ -240,8 +267,8 @@
                 ]
             ]
         },
-        {
-            "name": "mailing-flush",
+		{
+            "name": "disposal-flush-rnd",
             "directions": 1,
             "delays": [
                 [
@@ -252,6 +279,21 @@
                     0.1,
                     0.5,
                     0.1,
+                    0.1,
+                    0.1
+                ]
+            ]
+        },
+        {
+            "name": "mailing-flush",
+            "directions": 1,
+            "delays": [
+                [
+                    0.1,
+                    0.1,
+                    0.1,
+                    0.1,
+                    0.5,
                     0.1,
                     0.1
                 ]
@@ -812,6 +854,78 @@
         },
         {
             "name": "pipe-yf",
+            "directions": 4,
+            "delays": [
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ]
+            ]
+        },
+        {
+            "name": "signal-router",
+            "directions": 4,
+            "delays": [
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ]
+            ]
+        },
+        {
+            "name": "signal-router-free",
+            "directions": 4,
+            "delays": [
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ]
+            ]
+        },
+        {
+            "name": "signal-router-flipped",
+            "directions": 4,
+            "delays": [
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ],
+                [
+                    1.0
+                ]
+            ]
+        },
+        {
+            "name": "signal-router-flipped-free",
             "directions": 4,
             "delays": [
                 [

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Form>
+  <FormId>med_per_utilliz</FormId>
+  <PrototypeId>PaperNtFormMed</PrototypeId>
+  <EntityName>форма НТ-МЕД-РУТ</EntityName>
+  <PhotocopierTitle>Разрешение на утилизацию тела</PhotocopierTitle>
+  <Content><![CDATA[[bold]Форма НТ-МЕД-РУТ[/bold]
+[head=2]Разрешение на утилизацию тела[/head]
+
+[italic]Дата: ДЕНЬ/МЕСЯЦ/ГОД[/italic]
+
+Составитель документа:
+Должность составителя:
+
+Я, (ФИО), в должности (полное наименование должности), разрешаю утилизировать тело (ФИО), в должности (полное наименование должности) в связи с невозможностью его реанимации и клонирования.
+Способ утилизации:
+
+[italic]Место для печатей[/italic]]]></Content>
+</Form>

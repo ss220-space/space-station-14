@@ -1,11 +1,10 @@
-using System.Linq;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype.List;
 
 namespace Content.Shared.Roles;
 
 [Prototype("department")]
-public sealed class DepartmentPrototype : IPrototype
+public sealed partial class DepartmentPrototype : IPrototype
 {
     [IdDataField] public string ID { get; } = default!;
 
@@ -24,4 +23,9 @@ public sealed class DepartmentPrototype : IPrototype
     [ViewVariables(VVAccess.ReadWrite),
      DataField("roles", customTypeSerializer: typeof(PrototypeIdListSerializer<JobPrototype>))]
     public List<string> Roles = new();
+
+    /// <summary>
+    ///     Used in cases when job is in two or more departments and need to choose one.
+    /// </summary>
+    [DataField("sort")] public int Sort = default!;
 }

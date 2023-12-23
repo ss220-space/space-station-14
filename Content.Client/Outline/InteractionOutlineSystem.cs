@@ -4,7 +4,7 @@ using Content.Client.Interactable.Components;
 using Content.Client.Viewport;
 using Content.Shared.CCVar;
 using Content.Shared.Interaction;
-using Robust.Client.GameObjects;
+using Content.Shared.SS220.Interaction;
 using Robust.Client.Graphics;
 using Robust.Client.Input;
 using Robust.Client.Player;
@@ -42,7 +42,7 @@ public sealed class InteractionOutlineSystem : EntitySystem
         base.Initialize();
 
         _configManager.OnValueChanged(CCVars.OutlineEnabled, SetCvarEnabled);
-        UpdatesAfter.Add(typeof(EyeUpdateSystem));
+        UpdatesAfter.Add(typeof(SharedEyeSystem));
     }
 
     public override void Shutdown()
@@ -65,7 +65,7 @@ public sealed class InteractionOutlineSystem : EntitySystem
             return;
 
         if (TryComp(_lastHoveredEntity, out InteractionOutlineComponent? outline))
-            outline.OnMouseLeave();
+            outline.OnMouseLeave(_lastHoveredEntity.Value);
     }
 
     public void SetEnabled(bool enabled)
@@ -84,7 +84,7 @@ public sealed class InteractionOutlineSystem : EntitySystem
             return;
 
         if (TryComp(_lastHoveredEntity, out InteractionOutlineComponent? outline))
-            outline.OnMouseLeave();
+            outline.OnMouseLeave(_lastHoveredEntity.Value);
     }
 
     public override void FrameUpdate(float frameTime)
@@ -117,7 +117,7 @@ public sealed class InteractionOutlineSystem : EntitySystem
         if (_uiManager.CurrentlyHovered is IViewportControl vp
             && _inputManager.MouseScreenPosition.IsValid)
         {
-            var mousePosWorld = vp.ScreenToMap(_inputManager.MouseScreenPosition.Position);
+            var mousePosWorld = vp.PixelToMap(_inputManager.MouseScreenPosition.Position);
             entityToClick = screen.GetClickedEntity(mousePosWorld);
 
             if (vp is ScalingViewport svp)
@@ -138,7 +138,12 @@ public sealed class InteractionOutlineSystem : EntitySystem
         var inRange = false;
         if (localPlayer.ControlledEntity != null && !Deleted(entityToClick))
         {
-            inRange = _interactionSystem.InRangeUnobstructed(localPlayer.ControlledEntity.Value, entityToClick.Value);
+            var range = SharedInteractionSystem.InteractionRange;
+
+            if (TryComp<InteractionRangeComponent>(entityToClick.Value, out var rangeComp))
+                range = rangeComp.Range;
+
+            inRange = _interactionSystem.InRangeUnobstructed(localPlayer.ControlledEntity.Value, entityToClick.Value, range: range);
         }
 
         InteractionOutlineComponent? outline;
@@ -147,7 +152,7 @@ public sealed class InteractionOutlineSystem : EntitySystem
         {
             if (entityToClick != null && TryComp(entityToClick, out outline))
             {
-                outline.UpdateInRange(inRange, renderScale);
+                outline.UpdateInRange(entityToClick.Value, inRange, renderScale);
             }
 
             return;
@@ -156,14 +161,14 @@ public sealed class InteractionOutlineSystem : EntitySystem
         if (_lastHoveredEntity != null && !Deleted(_lastHoveredEntity) &&
             TryComp(_lastHoveredEntity, out outline))
         {
-            outline.OnMouseLeave();
+            outline.OnMouseLeave(_lastHoveredEntity.Value);
         }
 
         _lastHoveredEntity = entityToClick;
 
         if (_lastHoveredEntity != null && TryComp(_lastHoveredEntity, out outline))
         {
-            outline.OnMouseEnter(inRange, renderScale);
+            outline.OnMouseEnter(_lastHoveredEntity.Value, inRange, renderScale);
         }
     }
 }

@@ -1,18 +1,21 @@
 using System.Linq;
+using Content.Server.Administration.Managers;
 using Content.Server.Afk;
 using Content.Server.Afk.Events;
 using Content.Server.GameTicking;
-using Content.Server.Roles;
+using Content.Server.Mind;
 using Content.Shared.CCVar;
 using Content.Shared.GameTicking;
 using Content.Shared.Mobs;
 using Content.Shared.Mobs.Components;
+using Content.Shared.Players;
 using Content.Shared.Players.PlayTimeTracking;
 using Content.Shared.Roles;
 using Robust.Server.GameObjects;
 using Robust.Server.Player;
 using Robust.Shared.Configuration;
 using Robust.Shared.Network;
+using Robust.Shared.Player;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
@@ -25,15 +28,20 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
 {
     [Dependency] private readonly IAfkManager _afk = default!;
     [Dependency] private readonly IPlayerManager _playerManager = default!;
+    [Dependency] private readonly IAdminManager _adminManager = default!;
     [Dependency] private readonly IPrototypeManager _prototypes = default!;
     [Dependency] private readonly IConfigurationManager _cfg = default!;
+    [Dependency] private readonly MindSystem _minds = default!;
     [Dependency] private readonly PlayTimeTrackingManager _tracking = default!;
+
+    private const string AGhostPrototypeID = "AdminObserver"; //SS220-aghost-playtime
 
     public override void Initialize()
     {
         base.Initialize();
 
         _tracking.CalcTrackers += CalcTrackers;
+        _adminManager.OnPermsChanged += AdminManager_OnPermsChanged;
 
         SubscribeLocalEvent<RoundRestartCleanupEvent>(OnRoundEnd);
         SubscribeLocalEvent<PlayerAttachedEvent>(OnPlayerAttached);
@@ -46,6 +54,12 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
         SubscribeLocalEvent<PlayerJoinedLobbyEvent>(OnPlayerJoinedLobby);
     }
 
+    private void AdminManager_OnPermsChanged(Administration.AdminPermsChangedEventArgs obj)
+    {
+        if (_minds.TryGetSession(obj.Player.GetMind(), out var session))
+            _tracking.QueueRefreshTrackers(session);
+    }
+
     public override void Shutdown()
     {
         base.Shutdown();
@@ -53,19 +67,38 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
         _tracking.CalcTrackers -= CalcTrackers;
     }
 
-    private void CalcTrackers(IPlayerSession player, HashSet<string> trackers)
+    private bool IsBypassingChecks(ICommonSession player)
     {
-        if (_afk.IsAfk(player))
-            return;
-
-        if (!IsPlayerAlive(player))
-            return;
-
-        trackers.Add(PlayTimeTrackingShared.TrackerOverall);
-        trackers.UnionWith(GetTimedRoles(player));
+        return _adminManager.IsAdmin(player, true);
     }
 
-    private bool IsPlayerAlive(IPlayerSession session)
+    private void CalcTrackers(ICommonSession player, HashSet<string> trackers)
+    {
+        //SS220-aghost-playtime begin
+        // Checking for attached entity to prevent tracking for players in lobby
+        if (_afk.IsAfk(player) || player.AttachedEntity == null)
+            return;
+
+        if (_adminManager.IsAdmin(player, includeDeAdmin: false))
+        {
+            trackers.Add(PlayTimeTrackingShared.TrackerAdmin);
+            if (player.AttachedEntity is { Valid: true } attachedEntity &&
+                Comp<MetaDataComponent>(attachedEntity).EntityPrototype?.ID == AGhostPrototypeID)
+                trackers.Add(PlayTimeTrackingShared.TrackerAGhost);
+        }
+
+        if (!IsPlayerAlive(player))
+        {
+            trackers.Add(PlayTimeTrackingShared.TrackerObserver);
+            return;
+        }
+        //SS220-aghost-playtime end
+
+        trackers.UnionWith(GetTimedRoles(player));
+        trackers.Add(PlayTimeTrackingShared.TrackerOverall);
+    }
+
+    private bool IsPlayerAlive(ICommonSession session)
     {
         var attached = session.AttachedEntity;
         if (attached == null)
@@ -77,41 +110,40 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
         return state.CurrentState is MobState.Alive or MobState.Critical;
     }
 
-    public IEnumerable<string> GetTimedRoles(Mind.Mind mind)
+    public IEnumerable<string> GetTimedRoles(EntityUid mindId)
     {
-        foreach (var role in mind.AllRoles)
+        var ev = new MindGetAllRolesEvent(new List<RoleInfo>());
+        RaiseLocalEvent(mindId, ref ev);
+
+        foreach (var role in ev.Roles)
         {
-            if (role is not IRoleTimer timer)
+            if (string.IsNullOrWhiteSpace(role.PlayTimeTrackerId))
                 continue;
 
-            yield return _prototypes.Index<PlayTimeTrackerPrototype>(timer.Timer).ID;
+            yield return _prototypes.Index<PlayTimeTrackerPrototype>(role.PlayTimeTrackerId).ID;
         }
     }
 
-    private IEnumerable<string> GetTimedRoles(IPlayerSession session)
+    private IEnumerable<string> GetTimedRoles(ICommonSession session)
     {
         var contentData = _playerManager.GetPlayerData(session.UserId).ContentData();
 
         if (contentData?.Mind == null)
             return Enumerable.Empty<string>();
 
-        return GetTimedRoles(contentData.Mind);
+        return GetTimedRoles(contentData.Mind.Value);
     }
 
     private void OnRoleRemove(RoleRemovedEvent ev)
     {
-        if (ev.Mind.Session == null)
-            return;
-
-        _tracking.QueueRefreshTrackers(ev.Mind.Session);
+        if (_minds.TryGetSession(ev.Mind, out var session))
+            _tracking.QueueRefreshTrackers(session);
     }
 
     private void OnRoleAdd(RoleAddedEvent ev)
     {
-        if (ev.Mind.Session == null)
-            return;
-
-        _tracking.QueueRefreshTrackers(ev.Mind.Session);
+        if (_minds.TryGetSession(ev.Mind, out var session))
+            _tracking.QueueRefreshTrackers(session);
     }
 
     private void OnRoundEnd(RoundRestartCleanupEvent ev)
@@ -155,8 +187,11 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
         _tracking.QueueSendTimers(ev.PlayerSession);
     }
 
-    public bool IsAllowed(IPlayerSession player, string role)
+    public bool IsAllowed(ICommonSession player, string role)
     {
+        if (IsBypassingChecks(player))
+            return true;
+
         if (!_prototypes.TryIndex<JobPrototype>(role, out var job) ||
             job.Requirements == null ||
             !_cfg.GetCVar(CCVars.GameRoleTimers))
@@ -164,12 +199,15 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
 
         var playTimes = _tracking.GetTrackerTimes(player);
 
-        return JobRequirements.TryRequirementsMet(job, playTimes, out _, _prototypes);
+        return JobRequirements.TryRequirementsMet(job, playTimes, out _, EntityManager, _prototypes);
     }
 
-    public HashSet<string> GetDisallowedJobs(IPlayerSession player)
+    public HashSet<string> GetDisallowedJobs(ICommonSession player)
     {
         var roles = new HashSet<string>();
+        if (IsBypassingChecks(player))
+            return roles;
+
         if (!_cfg.GetCVar(CCVars.GameRoleTimers))
             return roles;
 
@@ -181,7 +219,7 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
             {
                 foreach (var requirement in job.Requirements)
                 {
-                    if (JobRequirements.TryRequirementMet(requirement, playTimes, out _, _prototypes))
+                    if (JobRequirements.TryRequirementMet(requirement, playTimes, out _, EntityManager, _prototypes))
                         continue;
 
                     goto NoRole;
@@ -201,7 +239,15 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
             return;
 
         var player = _playerManager.GetSessionByUserId(userId);
-        var playTimes = _tracking.GetTrackerTimes(player);
+        if (IsBypassingChecks(player))
+            return;
+
+        if (!_tracking.TryGetTrackerTimes(player, out var playTimes))
+        {
+            // Sorry mate but your playtimes haven't loaded.
+            Log.Error($"Playtimes weren't ready yet for {player} on roundstart!");
+            playTimes ??= new Dictionary<string, TimeSpan>();
+        }
 
         for (var i = 0; i < jobs.Count; i++)
         {
@@ -214,7 +260,7 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
 
             foreach (var requirement in jobber.Requirements)
             {
-                if (JobRequirements.TryRequirementMet(requirement, playTimes, out _, _prototypes))
+                if (JobRequirements.TryRequirementMet(requirement, playTimes, out _, EntityManager, _prototypes))
                     continue;
 
                 jobs.RemoveSwap(i);
@@ -224,7 +270,7 @@ public sealed class PlayTimeTrackingSystem : EntitySystem
         }
     }
 
-    public void PlayerRolesChanged(IPlayerSession player)
+    public void PlayerRolesChanged(ICommonSession player)
     {
         _tracking.QueueRefreshTrackers(player);
     }
